@@ -448,7 +448,7 @@ function ManualBookingForm({ day, defaultStaff, onDone }: { day: string; default
           <div className="min-w-40">
             <Button type="submit" loading={save.isPending} disabled={!effService || !effWho}>Agendar</Button>
           </div>
-          <SmallButton onClick={onDone} className="min-h-12">Cancelar</SmallButton>
+          <SmallButton onClick={() => onDone()} className="min-h-12">Cancelar</SmallButton>
         </div>
       </form>
     </Card>
