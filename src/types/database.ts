@@ -168,6 +168,7 @@ export type Database = {
           timezone: string
           updated_at: string
           whatsapp: string | null
+          listed: boolean
         }
         Insert: { name: string; slug: string }
         Update: {
@@ -189,6 +190,7 @@ export type Database = {
           state?: string | null
           timezone?: string
           whatsapp?: string | null
+          listed?: boolean
         }
         Relationships: []
       }
@@ -323,6 +325,7 @@ export type Database = {
       }
       get_my_shops: { Args: never; Returns: Json }
       get_platform_info: { Args: never; Returns: Json }
+      list_public_shops: { Args: { p_query?: string }; Returns: Json }
       get_shop_billing: { Args: { p_shop_id: string }; Returns: Json }
       admin_get_settings: { Args: never; Returns: Json }
       admin_update_settings: {

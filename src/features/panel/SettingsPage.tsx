@@ -38,6 +38,7 @@ function ShopForm() {
   })
   const [logoUrl, setLogoUrl] = useState<string | null>(shop.logo_url)
   const [coverUrl, setCoverUrl] = useState<string | null>(shop.cover_url)
+  const [listed, setListed] = useState<boolean>(shop.listed)
   const [saved, setSaved] = useState(false)
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => {
     setSaved(false)
@@ -65,6 +66,7 @@ function ShopForm() {
           cancel_limit_min: Number(f.cancel_limit_min),
           logo_url: logoUrl,
           cover_url: coverUrl,
+          listed,
         })
         .eq('id', shop.id)
       if (error) throw error
@@ -74,6 +76,7 @@ function ShopForm() {
       queryClient.invalidateQueries({ queryKey: ['panel', shop.id, 'shop'] })
       queryClient.invalidateQueries({ queryKey: ['public-shop', shop.slug] })
       queryClient.invalidateQueries({ queryKey: ['my-shops'] })
+      queryClient.invalidateQueries({ queryKey: ['public-shops'] })
     },
   })
 
@@ -169,6 +172,17 @@ function ShopForm() {
             <option key={m} value={m}>{m === 0 ? 'A qualquer momento antes' : m < 60 ? `${m} minutos antes` : `${m / 60} hora${m > 60 ? 's' : ''} antes`}</option>
           ))}
         </Select>
+        <div className="md:col-span-2">
+          <Toggle
+            label="Aparecer na busca de barbearias do site (clientes encontram pelo nome ou cidade)"
+            checked={listed}
+            onChange={(v) => {
+              setSaved(false)
+              setListed(v)
+            }}
+          />
+          <p className="text-xs text-ink-300">Desligado, a página continua funcionando pelo link direto.</p>
+        </div>
         <div className="md:col-span-2 md:max-w-xs">
           <Button type="submit" loading={save.isPending} disabled={f.name.trim().length < 2}>Salvar dados</Button>
         </div>

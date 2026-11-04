@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useLocation } from 'react-router'
+import { Link, useLocation, useSearchParams } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
@@ -48,6 +48,7 @@ export function AccountPage() {
       ) : null}
 
       <MyAppointments />
+      <Link to="/" className="mt-4 inline-flex min-h-11 items-center text-sm text-gold-300 underline underline-offset-4">Encontrar uma barbearia para agendar</Link>
 
       {shops.isError ? (
         <div className="mt-6"><Alert tone="error">{friendlyError(shops.error)}</Alert></div>
@@ -90,7 +91,13 @@ export function AccountPage() {
 
 function CreateShopForm() {
   const queryClient = useQueryClient()
-  const [open, setOpen] = useState(false)
+  const [params] = useSearchParams()
+  const [open, setOpen] = useState(params.get('nova-barbearia') === '1')
+  const sectionRef = useRef<HTMLElement>(null)
+  // veio da Área da barbearia: rola direto até o formulário
+  useEffect(() => {
+    if (params.get('nova-barbearia') === '1') sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [params])
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
   const [slugTouched, setSlugTouched] = useState(false)
@@ -129,7 +136,7 @@ function CreateShopForm() {
   }
 
   return (
-    <section className="mt-12" aria-labelledby="nova-barbearia">
+    <section ref={sectionRef} className="mt-12 scroll-mt-6" aria-labelledby="nova-barbearia">
       <h2 id="nova-barbearia" className="font-sans text-sm font-semibold uppercase tracking-[0.16em] text-ink-500">
         Cadastrar barbearia
       </h2>

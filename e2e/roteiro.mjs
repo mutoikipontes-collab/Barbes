@@ -44,6 +44,12 @@ async function step(name, fn) {
 }
 
 try {
+  await step('area-da-barbearia', async () => {
+    await page.goto(`${BASE}/`)
+    await page.getByRole('link', { name: /Área da barbearia/ }).click()
+    await page.getByRole('heading', { name: 'Área da barbearia' }).waitFor({ timeout: 15000 })
+  })
+
   await step('cadastro', async () => {
     await page.goto(`${BASE}/cadastro`)
     await page.getByLabel('Nome completo').fill('Teste Automático')
@@ -95,6 +101,13 @@ try {
     await page.getByLabel('UF').fill('SP')
     await page.getByRole('button', { name: 'Salvar dados' }).click()
     await page.getByText('Alterações salvas').waitFor({ timeout: 15000 })
+  })
+
+  await step('site-do-cliente-busca', async () => {
+    await page.goto(`${BASE}/`)
+    await page.getByPlaceholder('Nome da barbearia ou cidade').fill(`E2E ${stamp}`)
+    await page.getByRole('link', { name: new RegExp(`E2E ${stamp}`) }).click()
+    await page.waitForURL(`**/${slug}`, { timeout: 15000 })
   })
 
   await step('pagina-publica', async () => {

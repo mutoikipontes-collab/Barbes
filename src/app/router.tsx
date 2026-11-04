@@ -19,6 +19,7 @@ import { SettingsPage } from '@/features/panel/SettingsPage'
 import { OwnerOnly } from '@/features/panel/OwnerOnly'
 import { InvitePage } from '@/features/invite/InvitePage'
 import { PrivacyPage, TermsPage } from '@/features/legal/LegalPage'
+import { OwnerEntryPage } from '@/features/owner/OwnerEntryPage'
 
 export const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
   { path: '/convite/:token', element: <InvitePage /> },
   { path: '/termos', element: <TermsPage /> },
   { path: '/privacidade', element: <PrivacyPage /> },
+  { path: '/para-barbearias', element: <OwnerEntryPage /> },
   {
     element: <RequireAuth />,
     children: [
