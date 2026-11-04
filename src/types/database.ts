@@ -296,8 +296,7 @@ export type Database = {
         Args: { p_shop_id: string; p_status: SubscriptionStatus; p_current_period_end?: string; p_admin_notes?: string }
         Returns: Json
       }
-      create_shop: { Args: { p_name: string; p_slug: string; p_timezone?: string; p_ref?: string; p_owner_cuts?: boolean }; Returns: Json }
-      get_my_referrals: { Args: { p_shop_id: string }; Returns: Json }
+      create_shop: { Args: { p_name: string; p_slug: string; p_timezone?: string }; Returns: Json }
       create_staff_invite: { Args: { p_staff_id: string }; Returns: string }
       get_staff_invite: { Args: { p_token: string }; Returns: Json }
       accept_staff_invite: { Args: { p_token: string }; Returns: Json }

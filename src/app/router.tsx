@@ -18,8 +18,6 @@ import { CustomersPage } from '@/features/panel/CustomersPage'
 import { SettingsPage } from '@/features/panel/SettingsPage'
 import { OwnerOnly } from '@/features/panel/OwnerOnly'
 import { InvitePage } from '@/features/invite/InvitePage'
-import { StartPage } from '@/features/onboarding/StartPage'
-import { PromotePage } from '@/features/panel/PromotePage'
 
 export const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
@@ -33,7 +31,6 @@ export const router = createBrowserRouter([
   },
   { path: '/redefinir-senha', element: <ResetPasswordPage /> },
   { path: '/convite/:token', element: <InvitePage /> },
-  { path: '/comecar', element: <StartPage /> },
   {
     element: <RequireAuth />,
     children: [
@@ -45,7 +42,6 @@ export const router = createBrowserRouter([
           { index: true, element: <PanelIndex /> },
           { path: 'agenda', element: <AgendaPage /> },
           { path: 'clientes', element: <CustomersPage /> },
-          { path: 'divulgar', element: <PromotePage /> },
           {
             element: <OwnerOnly />,
             children: [
