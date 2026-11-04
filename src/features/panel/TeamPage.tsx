@@ -14,6 +14,22 @@ import { InviteButton } from './InviteButton'
 import { Card, Empty, SectionTitle, SmallButton, TextArea, Toggle } from './ui'
 
 type Staff = Tables<'staff'>
+
+const SPECIALTY_OPTIONS = [
+  'Corte masculino',
+  'Corte social',
+  'Degradê',
+  'Corte infantil',
+  'Barba',
+  'Navalha',
+  'Toalha quente',
+  'Sobrancelha',
+  'Pigmentação',
+  'Luzes e platinado',
+  'Desenho (freestyle)',
+  'Tranças',
+]
+const MAX_SPECIALTIES = 6
 type DayHours = { on: boolean; start: string; end: string }
 
 const ORDER = [1, 2, 3, 4, 5, 6, 0]
@@ -103,7 +119,8 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
   const [name, setName] = useState(member?.display_name ?? '')
   const [bio, setBio] = useState(member?.bio ?? '')
   const [whatsapp, setWhatsapp] = useState(member?.whatsapp ?? '')
-  const [specialties, setSpecialties] = useState((member?.specialties ?? []).join(', '))
+  const [specialties, setSpecialties] = useState<string[]>(member?.specialties ?? [])
+  const [customSpecialty, setCustomSpecialty] = useState('')
   const [bookable, setBookable] = useState(member?.bookable ?? true)
   const [active, setActive] = useState(member?.active ?? true)
   const [svc, setSvc] = useState<string[]>(initialServices)
@@ -117,11 +134,7 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
       const row = {
         display_name: name.trim(),
         bio: bio.trim() || null,
-        specialties: specialties
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .slice(0, 6),
+        specialties: specialties.slice(0, MAX_SPECIALTIES),
         bookable,
         active,
         whatsapp: whatsapp.trim() ? toWhatsapp(whatsapp) : null,
@@ -207,7 +220,50 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
           placeholder="(99) 91234-5678"
           hint="Depois de agendar, o cliente pode chamar este número para conversar. Não aparece na página pública."
         />
-        <Field label="Especialidades (separe por vírgula)" name="st-spec" value={specialties} onChange={(e) => setSpecialties(e.target.value)} placeholder="Degradê, navalha" />
+        <fieldset>
+          <legend className="mb-2 text-sm font-medium text-ink-300">
+            Especialidades <span className="text-ink-500">(até {MAX_SPECIALTIES}, aparecem para o cliente)</span>
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {[...SPECIALTY_OPTIONS, ...specialties.filter((x) => !SPECIALTY_OPTIONS.includes(x))].map((opt) => {
+              const on = specialties.includes(opt)
+              const full = !on && specialties.length >= MAX_SPECIALTIES
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  aria-pressed={on}
+                  disabled={full}
+                  onClick={() => setSpecialties((all) => (on ? all.filter((x) => x !== opt) : [...all, opt]))}
+                  className="min-h-10 rounded-full border border-ink-700 px-4 text-sm hover:border-gold-500 disabled:opacity-40 aria-pressed:border-gold-500 aria-pressed:bg-[#2a2518] aria-pressed:text-gold-300"
+                >
+                  {on ? '✓ ' : ''}
+                  {opt}
+                </button>
+              )
+            })}
+          </div>
+          <div className="mt-3 flex gap-2">
+            <input
+              value={customSpecialty}
+              onChange={(e) => setCustomSpecialty(e.target.value)}
+              maxLength={30}
+              placeholder="Outra especialidade"
+              aria-label="Outra especialidade"
+              className="min-h-11 flex-1 rounded-xs border border-ink-700 bg-ink-950 px-3 text-base focus:border-gold-500 focus:outline-none"
+            />
+            <SmallButton
+              disabled={!customSpecialty.trim() || specialties.length >= MAX_SPECIALTIES}
+              onClick={() => {
+                const v = customSpecialty.trim().replace(/\s+/g, ' ')
+                if (v && !specialties.some((x) => x.toLowerCase() === v.toLowerCase())) setSpecialties((all) => [...all, v])
+                setCustomSpecialty('')
+              }}
+            >
+              Adicionar
+            </SmallButton>
+          </div>
+        </fieldset>
         <TextArea label="Apresentação curta (opcional)" rows={2} maxLength={300} value={bio} onChange={(e) => setBio(e.target.value)} />
 
         <Toggle label={member?.role === 'owner' ? 'Eu também atendo clientes' : 'Atende clientes (recebe agendamentos)'} checked={bookable} onChange={setBookable} />

@@ -115,7 +115,9 @@ export function BookingDialog({ shop, start, onClose }: { shop: PublicShop; star
 
           {st.step === 1 && (
             <OptionList>
-              {shop.services.map((s) => (
+              {shop.services
+                .filter((s) => !staff || staff.service_ids.includes(s.id))
+                .map((s) => (
                 <Option key={s.id} pressed={st.serviceId === s.id} onClick={() => go({ serviceId: s.id, date: null, startsAt: null, step: st.staffId === undefined ? 2 : 3 })}>
                   <span>
                     <b className="block font-medium">{s.name}</b>

@@ -16,8 +16,8 @@ export function ResetPasswordPage() {
 
   if (!session) {
     return (
-      <AuthLayout title="Link inválido" footer={<Link to="/recuperar-senha" className="font-semibold text-gold-400">Pedir novo link</Link>}>
-        <Alert tone="error">Este link expirou ou já foi usado. Peça um novo para redefinir sua senha.</Alert>
+      <AuthLayout title="Entre primeiro" footer={<Link to="/recuperar-senha" className="font-semibold text-gold-400">Recuperar acesso</Link>}>
+        <Alert tone="error">Para trocar a senha, entre na sua conta (pode ser com a senha temporária).</Alert>
       </AuthLayout>
     )
   }
@@ -37,7 +37,7 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <AuthLayout title="Nova senha">
+    <AuthLayout title="Trocar senha" footer={<Link to="/conta" className="font-semibold text-gold-400">Voltar para minha conta</Link>}>
       <form onSubmit={onSubmit} className="space-y-5" noValidate>
         {error ? <Alert tone="error">{error}</Alert> : null}
         <Field label="Nova senha" name="password" type="password" autoComplete="new-password" required minLength={8} />

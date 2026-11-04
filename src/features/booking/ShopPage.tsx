@@ -28,8 +28,11 @@ export function ShopPage() {
   useEffect(() => {
     if (!session || !shop.data) return
     try {
-      const raw = sessionStorage.getItem(pendingKey(shop.data.slug))
-      if (raw) setBooking({ pending: JSON.parse(raw) as PendingBooking })
+      const saved = sessionStorage.getItem(pendingKey(shop.data.slug))
+      if (saved) {
+        sessionStorage.removeItem(pendingKey(shop.data.slug))
+        setBooking({ pending: JSON.parse(saved) as PendingBooking })
+      }
     } catch {
       // sem armazenamento: nada a retomar
     }
@@ -53,14 +56,22 @@ export function ShopPage() {
   if (!shop.data) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 text-center">
-        <h1 className="text-4xl">Barbearia não encontrada</h1>
-        <p className="mt-4 text-ink-300">Confira o endereço. Esta página pode ter sido desativada.</p>
+        <h1 className="text-4xl">Agendamento indisponível</h1>
+        <p className="mt-4 text-ink-300">Confira o endereço digitado. Se ele estiver certo, fale direto com a barbearia para marcar seu horário.</p>
         <Link to="/" className="mt-8 font-semibold text-gold-300">Ir para o início</Link>
       </main>
     )
   }
 
-  const s = shop.data
+  // Só mostra serviço que algum barbeiro faz, e barbeiro que faz algum serviço ativo:
+  // assim o cliente nunca escolhe uma combinação sem horários.
+  const raw = shop.data
+  const staffList = raw.staff.filter((b) => b.service_ids.length > 0)
+  const s: PublicShop = {
+    ...raw,
+    staff: staffList,
+    services: raw.services.filter((sv) => staffList.some((b) => b.service_ids.includes(sv.id))),
+  }
   const canBook = s.services.length > 0 && s.staff.length > 0
   const open = (start: BookingStart = {}) => {
     try {

@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { friendlyError } from '@/lib/errors'
+import { friendlyError, functionErrorMessage } from '@/lib/errors'
 import { formatBRL } from '@/lib/format'
-import { Alert, Spinner, Wordmark } from '@/components/ui'
+import { Alert, Button, Field, Spinner, Wordmark } from '@/components/ui'
 import type { Enums } from '@/types/database'
 
 type SubStatus = Enums<'subscription_status'>
@@ -116,7 +117,11 @@ export function PlatformAdminPage() {
                 <select
                   value={s.subscription.status}
                   disabled={update.isPending}
-                  onChange={(e) => update.mutate({ shopId: s.id, status: e.target.value as SubStatus })}
+                  onChange={(e) => {
+                    const status = e.target.value as SubStatus
+                    if ((status === 'suspended' || status === 'cancelled') && !window.confirm(`${status === 'suspended' ? 'Suspender' : 'Cancelar'} ${s.name}? A página de agendamento sai do ar na hora.`)) return
+                    update.mutate({ shopId: s.id, status })
+                  }}
                   className="min-h-11 rounded-xs border border-ink-700 bg-ink-900 px-3 text-ink-100"
                 >
                   {STATUS_OPTIONS.map((o) => (
@@ -128,6 +133,46 @@ export function PlatformAdminPage() {
           ))}
         </ul>
       )}
+      <TempPassword />
     </main>
+  )
+}
+
+function TempPassword() {
+  const [email, setEmail] = useState('')
+  const [result, setResult] = useState<{ email: string; password: string } | null>(null)
+  const reset = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('admin-set-password', { body: { email } })
+      if (error) throw new Error(await functionErrorMessage(error))
+      return { email, password: (data as { password: string }).password }
+    },
+    onSuccess: setResult,
+  })
+  return (
+    <section className="mt-12">
+      <h2 className="font-sans text-sm font-semibold tracking-[0.16em] text-ink-500 uppercase">Recuperar acesso de um usuário</h2>
+      <p className="mt-2 text-sm text-ink-300">Gera uma senha temporária. Envie para a pessoa e peça que ela troque em Minha conta → Trocar senha.</p>
+      <form
+        className="mt-4 space-y-4"
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault()
+          setResult(null)
+          reset.mutate()
+        }}
+      >
+        {reset.isError ? <Alert tone="error">{reset.error instanceof Error ? reset.error.message : 'Erro.'}</Alert> : null}
+        {result ? (
+          <Alert tone="success">
+            Nova senha de {result.email}: <b className="font-mono text-base text-ink-100 select-all">{result.password}</b>
+          </Alert>
+        ) : null}
+        <Field label="E-mail da conta" name="tp-email" type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <div className="max-w-xs">
+          <Button type="submit" loading={reset.isPending} disabled={!email.trim()}>Gerar senha temporária</Button>
+        </div>
+      </form>
+    </section>
   )
 }
