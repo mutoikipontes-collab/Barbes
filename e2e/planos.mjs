@@ -81,7 +81,7 @@ try {
       await sel.waitFor({ timeout: 15000 })
       if ((await sel.inputValue()) !== 'basico') throw new Error('não começou no Básico')
       await sel.selectOption('premium')
-      await row.getByText(/R\$\s?79,90/).first().waitFor({ timeout: 15000 })
+      await row.getByText(/Plano Premium · R\$\s?79,90\/mês/).waitFor({ timeout: 15000 })
     })
     await step('aviso-plano-premium', async () => {
       await page.goto(`${BASE}/conta`)
@@ -96,7 +96,7 @@ try {
       await page.goto(`${BASE}/admin`)
       const row = page.locator('li').filter({ hasText: `/${slug}` })
       await row.getByLabel('Plano').selectOption('plus')
-      await row.getByText(/R\$\s?49,90/).first().waitFor({ timeout: 15000 })
+      await row.getByText(/Plano Plus · R\$\s?49,90\/mês/).waitFor({ timeout: 15000 })
       await page.goto(`${BASE}/conta`)
       await page.getByRole('link', { name: 'Abrir painel' }).first().click()
       await page.getByRole('button', { name: 'Como assinar' }).click()

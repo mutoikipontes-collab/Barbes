@@ -138,6 +138,9 @@ export function PlatformAdminPage() {
                   {s.owner?.email ?? 'sem proprietário com login'} · {s.counts.staff} na equipe · {s.counts.customers} clientes ·{' '}
                   {s.counts.appointments_30d} agendamentos em 30 dias
                 </p>
+                <p className="text-sm text-ink-300">
+                  Plano {s.subscription.plan} · {formatBRL(s.subscription.price_cents)}/mês
+                </p>
                 {s.subscription.current_period_end ? (
                   <p className={`text-sm ${s.subscription.current_period_end < today ? 'font-semibold text-danger' : 'text-gold-300'}`}>
                     {s.subscription.status === 'trialing' ? 'Teste até' : 'Vence em'} {s.subscription.current_period_end.split('-').reverse().join('/')}
