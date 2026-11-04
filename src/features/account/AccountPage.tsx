@@ -7,6 +7,7 @@ import { formatBRL, slugify } from '@/lib/format'
 import { Alert, Button, Field, Spinner, Wordmark } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useIsPlatformAdmin, useMyShops, useProfile } from '@/features/auth/queries'
+import { MyAppointments } from './MyAppointments'
 
 const STATUS_LABEL: Record<string, string> = {
   trialing: 'Em teste',
@@ -28,7 +29,7 @@ export function AccountPage() {
     <main className="mx-auto w-full max-w-2xl px-4 py-8">
       <header className="flex items-center justify-between gap-4">
         <Link to="/" aria-label="Início"><Wordmark /></Link>
-        <button onClick={signOut} className="min-h-11 rounded-lg px-3 text-sm text-ink-300 hover:text-ink-100">
+        <button onClick={signOut} className="min-h-11 rounded-xs px-3 text-sm text-ink-300 hover:text-ink-100">
           Sair
         </button>
       </header>
@@ -41,13 +42,15 @@ export function AccountPage() {
       {notice ? <div className="mt-6"><Alert tone="success">{notice}</Alert></div> : null}
 
       {isAdmin.data ? (
-        <Link to="/admin" className="mt-6 block rounded-lg border border-gold-500/40 px-4 py-3 text-gold-300">
+        <Link to="/admin" className="mt-6 block rounded-xs border border-gold-500/40 px-4 py-3 text-gold-300">
           Administração do BARBER OS
         </Link>
       ) : null}
 
+      <MyAppointments />
+
       <section className="mt-10" aria-labelledby="minhas-barbearias">
-        <h2 id="minhas-barbearias" className="text-sm font-semibold uppercase tracking-[0.16em] text-ink-500">
+        <h2 id="minhas-barbearias" className="font-sans text-sm font-semibold uppercase tracking-[0.16em] text-ink-500">
           Minhas barbearias
         </h2>
         {shops.isLoading ? (
@@ -55,11 +58,11 @@ export function AccountPage() {
         ) : shops.isError ? (
           <div className="mt-4"><Alert tone="error">{friendlyError(shops.error)}</Alert></div>
         ) : shops.data && shops.data.length > 0 ? (
-          <ul className="mt-4 divide-y divide-ink-800 rounded-lg border border-ink-800">
+          <ul className="mt-4 divide-y divide-ink-800 rounded-xs border border-ink-800">
             {shops.data.map((s) => (
               <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-4">
                 <div>
-                  <p className="font-semibold">{s.name}</p>
+                  <Link to={`/${s.slug}`} className="font-semibold hover:text-gold-300">{s.name}</Link>
                   <p className="text-sm text-ink-500">
                     /{s.slug} · {s.role === 'owner' ? 'Proprietário' : 'Barbeiro'}
                   </p>
@@ -110,7 +113,7 @@ function CreateShopForm() {
 
   return (
     <section className="mt-12" aria-labelledby="nova-barbearia">
-      <h2 id="nova-barbearia" className="text-sm font-semibold uppercase tracking-[0.16em] text-ink-500">
+      <h2 id="nova-barbearia" className="font-sans text-sm font-semibold uppercase tracking-[0.16em] text-ink-500">
         Cadastrar barbearia
       </h2>
       <form onSubmit={onSubmit} className="mt-4 space-y-5" noValidate>

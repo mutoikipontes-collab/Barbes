@@ -18,11 +18,9 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean
 
 export function Button({ loading, variant = 'primary', disabled, children, className = '', ...rest }: ButtonProps) {
   const base =
-    'inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold tracking-wide transition disabled:cursor-not-allowed disabled:opacity-50'
+    'inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xs px-6 text-[15px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50'
   const styles =
-    variant === 'primary'
-      ? 'bg-gold-500 text-ink-950 hover:bg-gold-400'
-      : 'border border-ink-700 text-ink-100 hover:border-gold-500/60'
+    variant === 'primary' ? 'btn-gold' : 'border border-ink-700 text-ink-100 hover:border-gold-500'
   return (
     <button {...rest} disabled={disabled || loading} className={`${base} ${styles} ${className}`}>
       {loading ? <Spinner label="Enviando" /> : children}
@@ -43,7 +41,7 @@ export function Field({ label, hint, error, id, ...rest }: FieldProps) {
         id={fieldId}
         aria-invalid={error ? true : undefined}
         {...rest}
-        className="min-h-12 w-full rounded-lg border border-ink-700 bg-ink-900 px-4 text-base text-ink-100 placeholder:text-ink-500 focus:border-gold-500 focus:outline-none"
+        className="min-h-12 w-full rounded-xs border border-ink-700 bg-ink-950 px-4 text-base text-ink-100 placeholder:text-ink-500 focus:border-gold-500 focus:outline-none"
       />
       {error ? <p className="text-sm text-danger">{error}</p> : hint ? <p className="text-sm text-ink-500">{hint}</p> : null}
     </div>
@@ -57,16 +55,17 @@ export function Alert({ tone, children }: { tone: 'error' | 'success' | 'info'; 
     info: 'border-gold-500/40 text-gold-300',
   }[tone]
   return (
-    <div role={tone === 'error' ? 'alert' : 'status'} className={`rounded-lg border bg-ink-900 px-4 py-3 text-sm ${styles}`}>
+    <div role={tone === 'error' ? 'alert' : 'status'} className={`rounded-xs border bg-ink-900 px-4 py-3 text-sm ${styles}`}>
       {children}
     </div>
   )
 }
 
-export function Wordmark() {
+export function Wordmark({ className = '' }: { className?: string }) {
   return (
-    <span className="font-display text-2xl font-semibold tracking-[0.18em] text-ink-100">
-      BARBER <span className="text-gold-500">OS</span>
+    <span className={`inline-flex items-center font-display text-[17px] font-medium tracking-[0.2em] text-gold-500 ${className}`}>
+      BARBER
+      <span className="ml-2 border border-gold-500 py-0.5 pr-1.5 pl-2.5">OS</span>
     </span>
   )
 }

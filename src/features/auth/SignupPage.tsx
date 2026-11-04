@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { supabase } from '@/lib/supabase'
 import { friendlyError, functionErrorMessage } from '@/lib/errors'
 import { Alert, Button, Field } from '@/components/ui'
@@ -7,6 +7,8 @@ import { AuthLayout } from './AuthLayout'
 
 export function SignupPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: string } | null)?.from ?? '/conta'
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -34,7 +36,7 @@ export function SignupPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (error) return setError(friendlyError(error))
-    navigate('/conta', { replace: true })
+    navigate(from, { replace: true })
   }
 
   return (
@@ -43,7 +45,7 @@ export function SignupPage() {
       subtitle="Uma conta serve para agendar como cliente e para cadastrar sua barbearia."
       footer={
         <>
-          Já tem conta? <Link to="/entrar" className="font-semibold text-gold-400">Entrar</Link>
+          Já tem conta? <Link to="/entrar" state={location.state} className="font-semibold text-gold-400">Entrar</Link>
         </>
       }
     >

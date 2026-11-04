@@ -8,6 +8,7 @@ import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage'
 import { AccountPage } from '@/features/account/AccountPage'
 import { PlatformAdminPage } from '@/features/platform-admin/PlatformAdminPage'
+import { ShopPage } from '@/features/booking/ShopPage'
 
 export const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
@@ -27,5 +28,7 @@ export const router = createBrowserRouter([
       { element: <RequirePlatformAdmin />, children: [{ path: '/admin', element: <PlatformAdminPage /> }] },
     ],
   },
+  // Página pública de cada barbearia: barber-os/<endereço>. Rotas fixas acima têm prioridade.
+  { path: '/:slug', element: <ShopPage /> },
   { path: '*', element: <NotFoundPage /> },
 ])

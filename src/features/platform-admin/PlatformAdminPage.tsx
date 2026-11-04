@@ -85,21 +85,21 @@ export function PlatformAdminPage() {
       {overview.isError ? <div className="mt-6"><Alert tone="error">{friendlyError(overview.error)}</Alert></div> : null}
       <dl className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-lg border border-ink-800 p-4">
+          <div key={s.label} className="rounded-xs border border-ink-800 p-4">
             <dt className="text-xs uppercase tracking-[0.14em] text-ink-500">{s.label}</dt>
             <dd className="mt-2 font-display text-2xl text-ink-100">{s.value}</dd>
           </div>
         ))}
       </dl>
 
-      <h2 className="mt-10 text-sm font-semibold uppercase tracking-[0.16em] text-ink-500">Barbearias</h2>
+      <h2 className="mt-10 font-sans text-sm font-semibold uppercase tracking-[0.16em] text-ink-500">Barbearias</h2>
       {update.isError ? <div className="mt-4"><Alert tone="error">{friendlyError(update.error)}</Alert></div> : null}
       {shops.isLoading ? (
         <div className="mt-4"><Spinner /></div>
       ) : shops.isError ? (
         <div className="mt-4"><Alert tone="error">{friendlyError(shops.error)}</Alert></div>
       ) : (
-        <ul className="mt-4 divide-y divide-ink-800 rounded-lg border border-ink-800">
+        <ul className="mt-4 divide-y divide-ink-800 rounded-xs border border-ink-800">
           {shops.data?.map((s) => (
             <li key={s.id} className="grid gap-3 px-4 py-4 md:grid-cols-[1fr_auto] md:items-center">
               <div>
@@ -117,7 +117,7 @@ export function PlatformAdminPage() {
                   value={s.subscription.status}
                   disabled={update.isPending}
                   onChange={(e) => update.mutate({ shopId: s.id, status: e.target.value as SubStatus })}
-                  className="min-h-11 rounded-lg border border-ink-700 bg-ink-900 px-3 text-ink-100"
+                  className="min-h-11 rounded-xs border border-ink-700 bg-ink-900 px-3 text-ink-100"
                 >
                   {STATUS_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>{o.label}</option>

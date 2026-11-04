@@ -15,8 +15,10 @@ export function RequireAuth() {
 
 export function RedirectIfAuthenticated() {
   const { session, loading, recovering } = useAuth()
+  const location = useLocation()
+  const from = (location.state as { from?: string } | null)?.from ?? '/conta'
   if (loading) return <FullPageLoading />
-  if (session && !recovering) return <Navigate to="/conta" replace />
+  if (session && !recovering) return <Navigate to={from} replace />
   return <Outlet />
 }
 

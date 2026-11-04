@@ -32,7 +32,7 @@ export function LoginPage() {
       subtitle="Acesse sua conta para agendar ou gerenciar sua barbearia."
       footer={
         <>
-          Ainda não tem conta? <Link to="/cadastro" className="font-semibold text-gold-400">Criar conta</Link>
+          Ainda não tem conta? <Link to="/cadastro" state={location.state} className="font-semibold text-gold-400">Criar conta</Link>
         </>
       }
     >

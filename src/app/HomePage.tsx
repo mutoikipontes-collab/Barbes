@@ -11,15 +11,15 @@ export function HomePage() {
       <p className="mt-6 font-display text-3xl leading-tight text-ink-100">Agenda e gestão para barbearias.</p>
       <div className="mt-10 grid gap-3">
         {session ? (
-          <Link to="/conta" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-gold-500 font-semibold text-ink-950">
+          <Link to="/conta" className="inline-flex min-h-12 items-center justify-center rounded-xs btn-gold font-semibold">
             Ir para minha conta
           </Link>
         ) : (
           <>
-            <Link to="/cadastro" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-gold-500 font-semibold text-ink-950">
+            <Link to="/cadastro" className="inline-flex min-h-12 items-center justify-center rounded-xs btn-gold font-semibold">
               Criar conta
             </Link>
-            <Link to="/entrar" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-ink-700 font-semibold">
+            <Link to="/entrar" className="inline-flex min-h-12 items-center justify-center rounded-xs border border-ink-700 font-semibold">
               Entrar
             </Link>
           </>
