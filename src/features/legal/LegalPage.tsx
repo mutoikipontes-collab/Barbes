@@ -65,8 +65,9 @@ export function PrivacyPage() {
       <p>Esta política explica quais dados o BARBER OS coleta, para que usa e quais são os seus direitos, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).</p>
       <h2>1. Dados que coletamos</h2>
       <ul>
-        <li><b>Conta:</b> nome, e-mail e senha (guardada de forma criptografada; ninguém consegue lê-la).</li>
-        <li><b>Agendamento:</b> celular, serviço, barbeiro, data, horário e observações que você escrever.</li>
+        <li><b>Agendamento (clientes, sem conta):</b> nome, e-mail, celular, serviço, barbeiro, data, horário e observações que você escrever.</li>
+        <li><b>Neste aparelho:</b> um código do seu agendamento fica salvo no navegador, para você ver, remarcar e cancelar em “Meus agendamentos”. Quem tiver o link do agendamento também consegue abri-lo; não compartilhe.</li>
+        <li><b>Conta (barbearias):</b> nome, e-mail e senha (guardada de forma criptografada; ninguém consegue lê-la).</li>
         <li><b>Barbearia:</b> dados da empresa, endereço, serviços, preços, horários e fotos publicadas pelo proprietário.</li>
         <li><b>Uso técnico:</b> informações de acesso necessárias para o sistema funcionar com segurança.</li>
       </ul>
@@ -80,14 +81,14 @@ export function PrivacyPage() {
       <p>Não vendemos seus dados e não os usamos para publicidade de terceiros.</p>
       <h2>3. Quem vê os seus dados</h2>
       <ul>
-        <li>Clientes: a barbearia onde você agendou (proprietário e barbeiro que vai atender) vê seu nome, celular e histórico naquela barbearia. Outras barbearias não veem.</li>
+        <li>Clientes: a barbearia onde você agendou (proprietário e barbeiro que vai atender) vê seu nome, e-mail, celular e histórico naquela barbearia. Outras barbearias não veem.</li>
         <li>Barbearias: os dados de cada barbearia ficam separados das demais.</li>
         <li>Provedores que fazem o sistema funcionar (hospedagem e banco de dados), apenas para essa finalidade.</li>
       </ul>
       <h2>4. Por quanto tempo guardamos</h2>
-      <p>Enquanto sua conta existir ou enquanto for necessário para cumprir obrigações legais. Depois disso, os dados são excluídos ou anonimizados.</p>
+      <p>Enquanto sua conta existir, enquanto a barbearia mantiver o histórico de atendimentos ou enquanto for necessário para cumprir obrigações legais. Depois disso, os dados são excluídos ou anonimizados.</p>
       <h2>5. Seus direitos</h2>
-      <p>Você pode pedir a qualquer momento: acesso aos seus dados, correção, exclusão da conta, informação sobre com quem compartilhamos e revogação de consentimento. Nome e celular podem ser corrigidos em Minha conta.</p>
+      <p>Você pode pedir a qualquer momento: acesso aos seus dados, correção, exclusão da conta, informação sobre com quem compartilhamos e revogação de consentimento. Para clientes, a correção ou exclusão pode ser pedida à barbearia onde você agendou ou ao suporte do BARBER OS.</p>
       <h2>6. Segurança</h2>
       <p>Usamos conexão criptografada, senhas protegidas e regras no banco de dados que impedem que uma barbearia ou um cliente veja dados de outro.</p>
       <h2>7. Contato</h2>

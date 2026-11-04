@@ -43,6 +43,9 @@ export function ClientMenu() {
           <Link to="/meus-agendamentos" onClick={close} className={item}>
             Meus agendamentos
           </Link>
+          <Link to="/sobre" onClick={close} className={item}>
+            Sobre nós
+          </Link>
           <div className="my-1 border-t border-ink-700" />
           <Link to="/cadastro" state={{ from: '/conta?nova-barbearia=1' }} onClick={close} className={`${item} font-semibold text-gold-300`}>
             Cadastrar minha barbearia
