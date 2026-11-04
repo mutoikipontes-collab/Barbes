@@ -289,14 +289,12 @@ function BlockForm({ day, defaultStaff, onDone }: { day: string; defaultStaff: s
       const startsAt = zonedToIso(fromDay, allDay ? '00:00' : start, shop.timezone)
       const endsAt = allDay ? zonedToIso(addDays(toDay, 1), '00:00', shop.timezone) : zonedToIso(toDay, end, shop.timezone)
       if (Date.parse(endsAt) <= Date.parse(startsAt)) throw new Error('O fim do bloqueio precisa ser depois do início.')
-      const { data: auth } = await supabase.auth.getUser()
       const { error } = await supabase.from('time_blocks').insert({
         shop_id: shop.id,
         staff_id: who === 'all' ? null : who,
         starts_at: startsAt,
         ends_at: endsAt,
         reason: reason.trim() || null,
-        created_by: auth.user?.id ?? null,
       })
       if (error) throw error
     },

@@ -278,7 +278,6 @@ export type Database = {
           starts_at: string
           reason?: string | null
           staff_id?: string | null
-          created_by?: string | null
         }
         Update: { ends_at?: string; starts_at?: string; reason?: string | null; staff_id?: string | null }
         Relationships: []
