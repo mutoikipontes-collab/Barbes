@@ -9,6 +9,7 @@ import { LocationCard } from '@/components/LocationCard'
 import type { Address } from '@/lib/location'
 import { Alert, Spinner } from '@/components/ui'
 import { RescheduleDialog, type RescheduleTarget } from './RescheduleDialog'
+import { useAuth } from '@/features/auth/AuthProvider'
 
 type MyAppointment = {
   id: string
@@ -38,8 +39,10 @@ export function MyAppointments() {
   const queryClient = useQueryClient()
   const [moving, setMoving] = useState<RescheduleTarget | null>(null)
   const [openPlace, setOpenPlace] = useState<string | null>(null)
+  const { session } = useAuth()
   const list = useQuery({
-    queryKey: ['my-appointments'],
+    queryKey: ['my-appointments', session?.user.id],
+    enabled: !!session,
     queryFn: async () => {
       const { data, error } = await supabase.rpc('my_appointments')
       if (error) throw error

@@ -103,8 +103,13 @@ try {
     await page.getByText('Alterações salvas').waitFor({ timeout: 15000 })
   })
 
-  await step('site-do-cliente-busca', async () => {
+  await step('site-do-cliente', async () => {
     await page.goto(`${BASE}/`)
+    await page.getByRole('heading', { name: 'Encontre sua barbearia e agende.' }).waitFor({ timeout: 15000 })
+    await page.getByRole('link', { name: new RegExp(`E2E ${stamp}`) }).waitFor({ timeout: 15000 })
+  })
+
+  await step('site-do-cliente-busca', async () => {
     await page.getByPlaceholder('Nome da barbearia ou cidade').fill(`E2E ${stamp}`)
     await page.getByRole('link', { name: new RegExp(`E2E ${stamp}`) }).click()
     await page.waitForURL(`**/${slug}`, { timeout: 15000 })
