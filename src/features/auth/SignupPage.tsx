@@ -1,14 +1,13 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { supabase } from '@/lib/supabase'
-import { friendlyError } from '@/lib/errors'
+import { friendlyError, functionErrorMessage } from '@/lib/errors'
 import { Alert, Button, Field } from '@/components/ui'
 import { AuthLayout } from './AuthLayout'
 
 export function SignupPage() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
-  const [sentTo, setSentTo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -24,27 +23,18 @@ export function SignupPage() {
     if (password.length < 8) return setError('A senha precisa ter pelo menos 8 caracteres.')
 
     setLoading(true)
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName }, emailRedirectTo: `${window.location.origin}/conta` },
+    // A conta é criada já confirmada por uma função no servidor (sem e-mail de confirmação).
+    const { error: fnError } = await supabase.functions.invoke('signup', {
+      body: { full_name: fullName, email, password },
     })
+    if (fnError) {
+      setLoading(false)
+      return setError(await functionErrorMessage(fnError))
+    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (error) return setError(friendlyError(error))
-    // Com confirmação de e-mail ligada, a sessão só existe depois do clique no link.
-    if (data.session) navigate('/conta', { replace: true })
-    else setSentTo(email)
-  }
-
-  if (sentTo) {
-    return (
-      <AuthLayout title="Confirme seu e-mail" footer={<Link to="/entrar" className="font-semibold text-gold-400">Ir para o login</Link>}>
-        <Alert tone="success">
-          Enviamos um link para <strong>{sentTo}</strong>. Abra o e-mail e toque no link para ativar sua conta. Se não
-          encontrar, olhe a caixa de spam.
-        </Alert>
-      </AuthLayout>
-    )
+    navigate('/conta', { replace: true })
   }
 
   return (

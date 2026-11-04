@@ -22,3 +22,17 @@ export function friendlyError(error: unknown): string {
   }
   return 'Algo deu errado. Tente novamente.'
 }
+
+// Erros das funções do servidor vêm com a mensagem em português no corpo da resposta.
+export async function functionErrorMessage(error: unknown): Promise<string> {
+  const context = (error as { context?: unknown }).context
+  if (context instanceof Response) {
+    try {
+      const body = (await context.clone().json()) as { error?: string }
+      if (body.error) return body.error
+    } catch {
+      // corpo não é JSON: cai na mensagem genérica
+    }
+  }
+  return friendlyError(error)
+}
