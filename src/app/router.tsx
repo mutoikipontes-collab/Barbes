@@ -22,6 +22,8 @@ import { PrivacyPage, TermsPage } from '@/features/legal/LegalPage'
 import { OwnerEntryPage } from '@/features/owner/OwnerEntryPage'
 import { GuestAppointmentsPage } from '@/features/guest/GuestAppointmentsPage'
 import { AboutPage } from '@/features/about/AboutPage'
+import { PlansPage } from '@/features/plans/PlansPage'
+import { PlanPage } from '@/features/panel/PlanPage'
 
 // Um site só. A página inicial é do cliente (encontrar barbearia e agendar, sem conta).
 // A parte da barbearia (cadastro, painel) fica em páginas próprias, abertas pelo menu.
@@ -30,6 +32,7 @@ export const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
   { path: '/meus-agendamentos', element: <GuestAppointmentsPage /> },
   { path: '/sobre', element: <AboutPage /> },
+  { path: '/planos', element: <PlansPage /> },
   // barbearia
   { path: '/para-barbearias', element: <OwnerEntryPage /> },
   {
@@ -61,6 +64,7 @@ export const router = createBrowserRouter([
               { path: 'servicos', element: <ServicesPage /> },
               { path: 'equipe', element: <TeamPage /> },
               { path: 'configuracoes', element: <SettingsPage /> },
+              { path: 'plano', element: <PlanPage /> },
             ],
           },
         ],

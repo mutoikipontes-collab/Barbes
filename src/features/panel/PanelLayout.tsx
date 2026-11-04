@@ -14,6 +14,7 @@ const TABS = [
   { to: 'equipe', label: 'Equipe', end: false, ownerOnly: true },
   { to: 'clientes', label: 'Clientes', end: false, ownerOnly: false },
   { to: 'configuracoes', label: 'Configurações', end: false, ownerOnly: true },
+  { to: 'plano', label: 'Plano', end: false, ownerOnly: true },
 ]
 
 export function PanelLayout() {

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { formatBRL, whatsappLink } from '@/lib/format'
+import { Link } from 'react-router'
 import { usePanel } from './context'
 
 type Billing = {
@@ -13,6 +14,8 @@ type Billing = {
   pix_key: string | null
   pix_holder: string | null
   pix_code: string | null
+  requested_plan?: string | null
+  requested_price_cents?: number | null
   support_whatsapp: string | null
   grace_days: number
 }
@@ -38,7 +41,7 @@ export function BillingBanner() {
   if (role !== 'owner' || !b || !b.current_period_end) return null
   const left = b.days_left ?? 0
   const due = dateBR(b.current_period_end)
-  const price = formatBRL(b.price_cents)
+  const price = formatBRL(b.requested_price_cents ?? b.price_cents)
 
   let tone = 'border-ink-700'
   let text: string
@@ -72,23 +75,13 @@ export function BillingBanner() {
       {open ? (
         <div className="mt-3 space-y-3 border-t border-ink-700 pt-3">
           <p className="text-ink-300">
-            Plano {b.plan}: <b className="text-ink-100">{price}/mês</b>. Pague por Pix e envie o comprovante. A liberação é feita em seguida.
+            Plano {b.requested_plan ?? b.plan}: <b className="text-ink-100">{price}/mês</b>. Pague por Pix e envie o comprovante. A liberação é feita em seguida.
           </p>
           <p className="text-ink-300">
-            Planos: Básico R$ 29,90 · Plus R$ 49,90 (aparece antes das Básicas na busca) · Premium R$ 79,90 (aparece em primeiro, com selo Destaque).
-            {b.support_whatsapp ? (
-              <>
-                {' '}
-                <a
-                  href={whatsappLink(b.support_whatsapp, `Olá! Quero mudar o plano da barbearia ${shop.name} no BARBER OS.`)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-semibold text-gold-300 underline underline-offset-4"
-                >
-                  Mudar de plano
-                </a>
-              </>
-            ) : null}
+            Planos: Básico, Plus (aparece antes das Básicas na busca) e Premium (aparece em primeiro, com selo Destaque).{' '}
+            <Link to={`/painel/${shop.id}/plano`} className="font-semibold text-gold-300 underline underline-offset-4">
+              Ver e escolher plano
+            </Link>
           </p>
           {b.pix_code ? (
             <div className="space-y-2">

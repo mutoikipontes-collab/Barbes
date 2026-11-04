@@ -28,6 +28,7 @@ export function OwnerEntryPage() {
           >
             Cadastrar {mine.length ? 'outra' : 'minha'} barbearia
           </Link>
+          <Link to="/planos" className="mt-1 text-center text-sm text-gold-300 underline underline-offset-4">Ver planos e preços</Link>
         </div>
       ) : (
         <div className="grid gap-3">
@@ -42,6 +43,7 @@ export function OwnerEntryPage() {
             Cadastrar minha barbearia
           </Link>
           <p className="mt-2 text-sm text-ink-300">Primeiro você cria sua conta; em seguida cadastra a barbearia. O período de teste é grátis.</p>
+          <Link to="/planos" className="mt-1 text-center text-sm text-gold-300 underline underline-offset-4">Ver planos e preços</Link>
         </div>
       )}
     </AuthLayout>

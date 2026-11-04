@@ -9,6 +9,8 @@ import type { Enums } from '@/types/database'
 
 type SubStatus = Enums<'subscription_status'>
 
+const TIER_LABEL = { basico: 'Básico (R$ 29,90)', plus: 'Plus (R$ 49,90)', premium: 'Premium (R$ 79,90)' } as const
+
 type AdminShop = {
   id: string
   name: string
@@ -16,7 +18,7 @@ type AdminShop = {
   is_active: boolean
   created_at: string
   owner: { name: string; email: string | null } | null
-  subscription: { status: SubStatus; plan: string; price_cents: number; current_period_end: string | null; tier: 'basico' | 'plus' | 'premium' }
+  subscription: { status: SubStatus; plan: string; price_cents: number; current_period_end: string | null; tier: 'basico' | 'plus' | 'premium'; requested_tier: 'basico' | 'plus' | 'premium' | null }
   counts: { staff: number; customers: number; appointments_30d: number }
 }
 
@@ -141,6 +143,11 @@ export function PlatformAdminPage() {
                 <p className="text-sm text-ink-300">
                   Plano {s.subscription.plan} · {formatBRL(s.subscription.price_cents)}/mês
                 </p>
+                {s.subscription.requested_tier ? (
+                  <p className="text-sm font-semibold text-gold-300">
+                    Pediu o plano {TIER_LABEL[s.subscription.requested_tier]}. Ao registrar o pagamento, o plano muda.
+                  </p>
+                ) : null}
                 {s.subscription.current_period_end ? (
                   <p className={`text-sm ${s.subscription.current_period_end < today ? 'font-semibold text-danger' : 'text-gold-300'}`}>
                     {s.subscription.status === 'trialing' ? 'Teste até' : 'Vence em'} {s.subscription.current_period_end.split('-').reverse().join('/')}
@@ -153,7 +160,7 @@ export function PlatformAdminPage() {
                 type="button"
                 disabled={pay.isPending}
                 onClick={() => {
-                  if (window.confirm(`Registrar pagamento de 1 mês para ${s.name}? Ela fica Ativa por mais 1 mês.`)) pay.mutate(s.id)
+                  if (window.confirm(`Registrar pagamento de 1 mês para ${s.name}?${s.subscription.requested_tier ? ` O plano muda para ${TIER_LABEL[s.subscription.requested_tier]}.` : ''} Ela fica Ativa por mais 1 mês.`)) pay.mutate(s.id)
                 }}
                 className="btn-gold inline-flex min-h-11 items-center rounded-xs px-4 text-sm font-semibold disabled:opacity-50"
               >

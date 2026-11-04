@@ -53,6 +53,9 @@ export function ClientMenu() {
           <Link to="/para-barbearias" onClick={close} className={`${item} text-sm text-ink-300`}>
             Já tenho barbearia: entrar
           </Link>
+          <Link to="/planos" onClick={close} className={`${item} text-sm text-ink-300`}>
+            Planos para barbearias
+          </Link>
         </nav>
       ) : null}
     </div>

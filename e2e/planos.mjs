@@ -45,6 +45,17 @@ try {
       await page.waitForURL(`${BASE}/sobre`)
       await page.getByRole('heading', { name: 'Por que fomos criados' }).waitFor()
     })
+    await step('menu-planos', async () => {
+      await page.goto(BASE)
+      await page.getByRole('button', { name: 'Menu' }).click()
+      await page.getByRole('link', { name: 'Planos para barbearias' }).click()
+      await page.waitForURL(`${BASE}/planos`)
+      for (const [nome, preco] of [['Básico', '29,90'], ['Plus', '49,90'], ['Premium', '79,90']]) {
+        await page.getByRole('heading', { name: nome, exact: true }).waitFor({ timeout: 15000 })
+        await page.getByText(new RegExp(`R\\$\\s?${preco}`)).first().waitFor()
+      }
+      await page.goto(`${BASE}/sobre`)
+    })
     await step('sobre-nos-botao-cadastrar', async () => {
       await page.getByRole('link', { name: 'Cadastrar minha barbearia' }).click()
       await page.waitForURL(`${BASE}/cadastro`)
@@ -66,6 +77,16 @@ try {
       const code = await page.evaluate(() => navigator.clipboard.readText())
       if (!code.endsWith('FB3F') || !code.includes('Iolanda dos Santos Pontes')) throw new Error(`Pix do Básico errado: ${code.slice(-30)}`)
     })
+    await step('dono-escolhe-premium-no-painel', async () => {
+      await page.getByRole('link', { name: 'Ver e escolher plano' }).click()
+      await page.getByRole('heading', { name: 'Plano', exact: true }).waitFor({ timeout: 15000 })
+      await page.getByRole('button', { name: 'Escolher Premium' }).click()
+      await page.getByText('Aguardando pagamento.').waitFor({ timeout: 15000 })
+      await page.getByText(/Você escolheu o plano Premium/).waitFor()
+      await page.getByRole('button', { name: 'Copiar Pix copia e cola' }).click()
+      const code = await page.evaluate(() => navigator.clipboard.readText())
+      if (!code.endsWith('6D00')) throw new Error(`Pix do Premium errado: ${code.slice(-20)}`)
+    })
   } else {
     await step('entrar', async () => {
       await page.goto(`${BASE}/entrar`)
@@ -74,20 +95,20 @@ try {
       await page.getByRole('button', { name: 'Entrar' }).click()
       await page.waitForURL('**/conta', { timeout: 20000 })
     })
-    await step('admin-muda-para-premium', async () => {
+    await step('admin-ve-pedido-e-registra-pagamento', async () => {
       await page.goto(`${BASE}/admin`)
       const row = page.locator('li').filter({ hasText: `/${slug}` })
-      const sel = row.getByLabel('Plano')
-      await sel.waitFor({ timeout: 15000 })
-      if ((await sel.inputValue()) !== 'basico') throw new Error('não começou no Básico')
-      await sel.selectOption('premium')
+      await row.getByText(/Pediu o plano Premium/).waitFor({ timeout: 15000 })
+      await row.getByText(/Plano Básico · R\$\s?29,90\/mês/).waitFor()
+      await row.getByRole('button', { name: 'Registrar pagamento' }).click()
       await row.getByText(/Plano Premium · R\$\s?79,90\/mês/).waitFor({ timeout: 15000 })
+      if (await row.getByText(/Pediu o plano/).count()) throw new Error('pedido não foi limpo')
     })
-    await step('aviso-plano-premium', async () => {
+    await step('aba-plano-mostra-premium', async () => {
       await page.goto(`${BASE}/conta`)
       await page.getByRole('link', { name: 'Abrir painel' }).first().click()
-      await page.getByRole('button', { name: 'Como assinar' }).click()
-      await page.getByText(/Plano Premium: R\$\s?79,90\/mês/).waitFor({ timeout: 15000 })
+      await page.getByRole('link', { name: 'Plano', exact: true }).click()
+      await page.getByText(/Plano atual: Premium/).waitFor({ timeout: 15000 })
       await page.getByRole('button', { name: 'Copiar Pix copia e cola' }).click()
       const code = await page.evaluate(() => navigator.clipboard.readText())
       if (!code.endsWith('6D00') || !code.includes('540579.90')) throw new Error(`Pix do Premium errado: ${code.slice(-30)}`)
@@ -99,8 +120,8 @@ try {
       await row.getByText(/Plano Plus · R\$\s?49,90\/mês/).waitFor({ timeout: 15000 })
       await page.goto(`${BASE}/conta`)
       await page.getByRole('link', { name: 'Abrir painel' }).first().click()
-      await page.getByRole('button', { name: 'Como assinar' }).click()
-      await page.getByText(/Plano Plus: R\$\s?49,90\/mês/).waitFor({ timeout: 15000 })
+      await page.getByRole('link', { name: 'Plano', exact: true }).click()
+      await page.getByText(/Plano atual: Plus/).waitFor({ timeout: 15000 })
       await page.getByRole('button', { name: 'Copiar Pix copia e cola' }).click()
       const code = await page.evaluate(() => navigator.clipboard.readText())
       if (!code.endsWith('AF90')) throw new Error(`Pix do Plus errado: ${code.slice(-30)}`)
