@@ -17,6 +17,7 @@ import { TeamPage } from '@/features/panel/TeamPage'
 import { CustomersPage } from '@/features/panel/CustomersPage'
 import { SettingsPage } from '@/features/panel/SettingsPage'
 import { OwnerOnly } from '@/features/panel/OwnerOnly'
+import { InvitePage } from '@/features/invite/InvitePage'
 
 export const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
     ],
   },
   { path: '/redefinir-senha', element: <ResetPasswordPage /> },
+  { path: '/convite/:token', element: <InvitePage /> },
   {
     element: <RequireAuth />,
     children: [

@@ -237,7 +237,7 @@ export function Initials({ name }: { name: string }) {
   )
 }
 
-function CalendarStep(props: {
+export function CalendarStep(props: {
   shop: PublicShop
   serviceId: string
   staffId: string | null
@@ -322,7 +322,7 @@ function CalendarStep(props: {
   )
 }
 
-function TimeStep(props: {
+export function TimeStep(props: {
   shop: PublicShop
   serviceId: string
   staffId: string | null

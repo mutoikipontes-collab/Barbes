@@ -207,6 +207,8 @@ export type Database = {
           specialties: string[]
           updated_at: string
           user_id: string | null
+          invite_token_hash: string | null
+          invite_expires_at: string | null
         }
         Insert: {
           display_name: string
@@ -292,6 +294,10 @@ export type Database = {
         Returns: Json
       }
       create_shop: { Args: { p_name: string; p_slug: string; p_timezone?: string }; Returns: Json }
+      create_staff_invite: { Args: { p_staff_id: string }; Returns: string }
+      get_staff_invite: { Args: { p_token: string }; Returns: Json }
+      accept_staff_invite: { Args: { p_token: string }; Returns: Json }
+      customer_reschedule_booking: { Args: { p_appointment_id: string; p_new_starts_at: string }; Returns: Json }
       customer_cancel_booking: { Args: { p_appointment_id: string; p_reason?: string }; Returns: Json }
       customer_create_booking: {
         Args: {

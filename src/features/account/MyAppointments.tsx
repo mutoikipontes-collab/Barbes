@@ -4,7 +4,9 @@ import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
 import { formatBRL } from '@/lib/format'
 import { dayOf, formatDay, formatTime } from '@/lib/time'
+import { useState } from 'react'
 import { Alert, Spinner } from '@/components/ui'
+import { RescheduleDialog, type RescheduleTarget } from './RescheduleDialog'
 
 type MyAppointment = {
   id: string
@@ -13,9 +15,12 @@ type MyAppointment = {
   status: 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
   price_cents: number
   service: string
+  service_id: string
   staff: string
+  staff_id: string
   can_cancel: boolean
-  shop: { name: string; slug: string; timezone: string; whatsapp: string | null }
+  can_reschedule: boolean
+  shop: { id: string; name: string; slug: string; timezone: string; whatsapp: string | null }
 }
 
 const STATUS: Record<MyAppointment['status'], string> = {
@@ -28,6 +33,7 @@ const STATUS: Record<MyAppointment['status'], string> = {
 
 export function MyAppointments() {
   const queryClient = useQueryClient()
+  const [moving, setMoving] = useState<RescheduleTarget | null>(null)
   const list = useQuery({
     queryKey: ['my-appointments'],
     queryFn: async () => {
@@ -76,7 +82,14 @@ export function MyAppointments() {
                     {a.service} com {a.staff} · <Link to={`/${a.shop.slug}`} className="underline underline-offset-2">{a.shop.name}</Link> · {formatBRL(a.price_cents)}
                   </small>
                 </div>
-                {isUpcoming && a.can_cancel ? (
+                {isUpcoming && (a.can_cancel || a.can_reschedule) ? (
+                  <div className="flex gap-4">
+                  {a.can_reschedule ? (
+                    <button type="button" onClick={() => setMoving(a)} className="min-h-11 text-gold-300 underline underline-offset-4">
+                      Remarcar
+                    </button>
+                  ) : null}
+                  {a.can_cancel ? (
                   <button
                     type="button"
                     disabled={cancel.isPending}
@@ -87,6 +100,8 @@ export function MyAppointments() {
                   >
                     Cancelar
                   </button>
+                  ) : null}
+                  </div>
                 ) : (
                   <span className="text-sm text-ink-300">
                     {isUpcoming ? 'Prazo de cancelamento online encerrado' : STATUS[a.status]}
@@ -97,6 +112,7 @@ export function MyAppointments() {
           })}
         </ul>
       )}
+      {moving ? <RescheduleDialog appt={moving} onClose={() => setMoving(null)} /> : null}
     </section>
   )
 }

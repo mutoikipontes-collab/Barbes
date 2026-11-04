@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
 import { formatBRL } from '@/lib/format'
-import { addDays, dayStartIso, formatDay, formatTime, todayIn, weekdayOf, WEEKDAYS_SHORT, zonedToIso } from '@/lib/time'
+import { addDays, dayOf, dayStartIso, formatDay, formatTime, todayIn, weekdayOf, WEEKDAYS_SHORT, zonedToIso } from '@/lib/time'
 import { Alert, Button, Field, Spinner } from '@/components/ui'
 import type { Enums, Tables } from '@/types/database'
 import { usePanel } from './context'
@@ -217,6 +217,9 @@ export function AgendaPage() {
         <ul className="space-y-2">
           {dayList.map((a) => {
             const c = appts.data?.customers.get(a.customer_id)
+            const reminder = c
+              ? `Olá, ${c.name.split(' ')[0]}! Lembrete do seu horário na ${shop.name}: ${formatDay(dayOf(a.starts_at, tz)).toLowerCase()} às ${formatTime(a.starts_at, tz)} (${serviceName(a.service_id)}). Até lá!`
+              : ''
             const wa = c ? `https://wa.me/${c.phone.replace(/\D/g, '')}` : null
             return (
               <li key={a.id}>
@@ -247,6 +250,11 @@ export function AgendaPage() {
                         <SmallButton disabled={setStatus.isPending} onClick={() => setStatus.mutate({ id: a.id, status: 'in_progress' })}>Iniciar</SmallButton>
                       ) : null}
                       <SmallButton tone="gold" disabled={setStatus.isPending} onClick={() => setStatus.mutate({ id: a.id, status: 'completed' })}>Concluir</SmallButton>
+                      {wa && a.status === 'confirmed' ? (
+                        <a href={`${wa}?text=${encodeURIComponent(reminder)}`} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center rounded-xs border border-ink-700 px-4 text-sm font-semibold hover:border-gold-500">
+                          Lembrete no WhatsApp
+                        </a>
+                      ) : null}
                       {a.status === 'confirmed' && new Date(a.starts_at).getTime() <= Date.now() ? (
                         <SmallButton disabled={setStatus.isPending} onClick={() => setStatus.mutate({ id: a.id, status: 'no_show' })}>Faltou</SmallButton>
                       ) : null}

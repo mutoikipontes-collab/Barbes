@@ -9,6 +9,7 @@ import { Initials } from '@/features/booking/BookingDialog'
 import { usePanel } from './context'
 import { useServices, useShopHours, useStaff, useStaffHours, useStaffServices } from './queries'
 import { TimeInput } from './SettingsPage'
+import { InviteButton } from './InviteButton'
 import { Card, Empty, SectionTitle, SmallButton, TextArea, Toggle } from './ui'
 
 type Staff = Tables<'staff'>
@@ -47,6 +48,7 @@ export function TeamPage() {
                       {b.role === 'owner' ? 'Proprietário' : 'Barbeiro'}
                       {b.bookable ? ` · ${nServices} serviço${nServices === 1 ? '' : 's'} · ${nDays} dia${nDays === 1 ? '' : 's'} na semana` : ' · não atende'}
                       {b.active ? '' : ' · inativo'}
+                      {b.role !== 'owner' && b.user_id ? ' · com acesso' : ''}
                     </small>
                   </div>
                 </div>
@@ -59,7 +61,7 @@ export function TeamPage() {
         <Empty>Nenhum barbeiro ainda.</Empty>
       )}
       <p className="mt-6 text-sm text-ink-300">
-        Barbeiros cadastrados aqui aparecem na sua página e recebem agendamentos. O acesso de cada barbeiro com login próprio ao painel chega numa próxima etapa.
+        Barbeiros cadastrados aqui aparecem na sua página e recebem agendamentos. Para dar acesso ao painel, abra o barbeiro e toque em “Gerar convite”.
       </p>
     </section>
   )
@@ -227,6 +229,8 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
         ) : null}
 
         {member?.role !== 'owner' ? <Toggle label="Ativo na equipe" checked={active} onChange={setActive} /> : null}
+
+        {member && member.role !== 'owner' && member.active ? <InviteButton member={member} /> : null}
 
         <div className="flex flex-wrap gap-3">
           <div className="min-w-48 flex-1 sm:flex-none">
