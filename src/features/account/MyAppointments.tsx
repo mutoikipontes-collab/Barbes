@@ -5,6 +5,8 @@ import { friendlyError } from '@/lib/errors'
 import { formatBRL, whatsappLink } from '@/lib/format'
 import { dayOf, formatDay, formatTime } from '@/lib/time'
 import { useState } from 'react'
+import { LocationCard } from '@/components/LocationCard'
+import type { Address } from '@/lib/location'
 import { Alert, Spinner } from '@/components/ui'
 import { RescheduleDialog, type RescheduleTarget } from './RescheduleDialog'
 
@@ -21,7 +23,7 @@ type MyAppointment = {
   can_cancel: boolean
   can_reschedule: boolean
   contact_whatsapp: string | null
-  shop: { id: string; name: string; slug: string; timezone: string; whatsapp: string | null }
+  shop: { id: string; name: string; slug: string; timezone: string; whatsapp: string | null; address: Address }
 }
 
 const STATUS: Record<MyAppointment['status'], string> = {
@@ -35,6 +37,7 @@ const STATUS: Record<MyAppointment['status'], string> = {
 export function MyAppointments() {
   const queryClient = useQueryClient()
   const [moving, setMoving] = useState<RescheduleTarget | null>(null)
+  const [openPlace, setOpenPlace] = useState<string | null>(null)
   const list = useQuery({
     queryKey: ['my-appointments'],
     queryFn: async () => {
@@ -82,6 +85,25 @@ export function MyAppointments() {
                   <small className="text-ink-300">
                     {a.service} com {a.staff} · <Link to={`/${a.shop.slug}`} className="underline underline-offset-2">{a.shop.name}</Link> · {formatBRL(a.price_cents)}
                   </small>
+                  {isUpcoming ? (
+                    <button
+                      type="button"
+                      aria-expanded={openPlace === a.id}
+                      onClick={() => setOpenPlace(openPlace === a.id ? null : a.id)}
+                      className="mt-1 block min-h-10 text-sm text-gold-300 underline underline-offset-4"
+                    >
+                      {openPlace === a.id ? 'Fechar localização' : 'Localização e salvar na agenda'}
+                    </button>
+                  ) : null}
+                  {isUpcoming && openPlace === a.id ? (
+                    <div className="mt-3 w-full max-w-md">
+                      <LocationCard
+                        shopName={a.shop.name}
+                        address={a.shop.address}
+                        event={{ title: `${a.service} · ${a.shop.name}`, startsAt: a.starts_at, endsAt: a.ends_at, details: `${a.service} com ${a.staff}.` }}
+                      />
+                    </div>
+                  ) : null}
                 </div>
                 {isUpcoming && (a.can_cancel || a.can_reschedule || a.contact_whatsapp) ? (
                   <div className="flex flex-wrap gap-4">

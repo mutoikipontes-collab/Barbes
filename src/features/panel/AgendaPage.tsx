@@ -376,12 +376,16 @@ function ManualBookingForm({ day, defaultStaff, onDone }: { day: string; default
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
 
+  // Se as listas ainda estavam carregando quando o formulário abriu, usa a primeira opção visível.
+  const effWho = who || bookable[0]?.id || ''
+  const effService = serviceId || services.data?.find((s) => s.active)?.id || ''
+
   const save = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.rpc('staff_create_booking', {
         p_shop_id: shop.id,
-        p_staff_id: who,
-        p_service_id: serviceId,
+        p_staff_id: effWho,
+        p_service_id: effService,
         p_starts_at: zonedToIso(date, time, shop.timezone),
         p_customer_name: name,
         p_customer_phone: phone,
@@ -410,7 +414,7 @@ function ManualBookingForm({ day, defaultStaff, onDone }: { day: string; default
         <h3 className="font-display text-xl">Novo agendamento</h3>
         <p className="text-sm text-ink-300">Para clientes que marcam por telefone ou no balcão. O horário precisa estar livre e dentro do expediente.</p>
         {save.isError ? <Alert tone="error">{friendlyError(save.error)}</Alert> : null}
-        <Select label="Serviço" value={serviceId} onChange={(e) => setServiceId(e.target.value)}>
+        <Select label="Serviço" value={effService} onChange={(e) => setServiceId(e.target.value)}>
           {(services.data ?? [])
             .filter((s) => s.active)
             .map((s) => (
@@ -418,7 +422,7 @@ function ManualBookingForm({ day, defaultStaff, onDone }: { day: string; default
             ))}
         </Select>
         {role === 'owner' ? (
-          <Select label="Barbeiro" value={who} onChange={(e) => setWho(e.target.value)}>
+          <Select label="Barbeiro" value={effWho} onChange={(e) => setWho(e.target.value)}>
             {bookable.map((s) => (
               <option key={s.id} value={s.id}>{s.display_name}</option>
             ))}
@@ -433,7 +437,7 @@ function ManualBookingForm({ day, defaultStaff, onDone }: { day: string; default
         <Field label="Observações (opcional)" name="mb-notes" maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} />
         <div className="flex gap-3">
           <div className="min-w-40">
-            <Button type="submit" loading={save.isPending} disabled={!serviceId || !who}>Agendar</Button>
+            <Button type="submit" loading={save.isPending} disabled={!effService || !effWho}>Agendar</Button>
           </div>
           <SmallButton onClick={onDone} className="min-h-12">Cancelar</SmallButton>
         </div>

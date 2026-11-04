@@ -9,6 +9,7 @@ import { Alert, FullPageLoading, Wordmark } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useMyShops } from '@/features/auth/queries'
 import { BookingDialog, pendingKey, type BookingStart } from './BookingDialog'
+import { LocationCard } from '@/components/LocationCard'
 import type { PendingBooking, PublicShop } from './types'
 
 export function ShopPage() {
@@ -92,7 +93,6 @@ export function ShopPage() {
     setBooking(start)
   }
   const address = [s.address.line, [s.address.city, s.address.state].filter(Boolean).join(' – ')].filter(Boolean).join(', ')
-  const mapsUrl = address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${s.name}, ${address}`)}` : null
   const whatsappUrl = s.whatsapp ? `https://wa.me/${s.whatsapp.replace(/\D/g, '')}` : null
 
   return (
@@ -207,14 +207,8 @@ export function ShopPage() {
           <h2 className="mb-5 text-[clamp(1.7rem,5vw,2.3rem)]">Onde e quando</h2>
           <div className="grid gap-6 md:grid-cols-2">
             {address ? (
-              <div>
-                <h3 className="mb-1.5 text-sm font-semibold text-ink-300">Endereço</h3>
-                <p>{address}</p>
-                {mapsUrl ? (
-                  <a href={mapsUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-gold-300 underline underline-offset-4">
-                    Abrir no mapa
-                  </a>
-                ) : null}
+              <div className="md:row-span-2">
+                <LocationCard shopName={s.name} address={s.address} />
               </div>
             ) : null}
             <div>

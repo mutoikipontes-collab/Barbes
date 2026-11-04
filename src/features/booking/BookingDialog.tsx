@@ -19,6 +19,8 @@ import {
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useProfile } from '@/features/auth/queries'
 import { Spinner } from '@/components/ui'
+import { LocationCard } from '@/components/LocationCard'
+import { formatLimit } from '@/lib/location'
 import type { PendingBooking, PublicShop } from './types'
 
 const TITLES = [
@@ -409,12 +411,12 @@ function DetailsAndConfirm(props: {
   const summary = useMemo(
     () => [
       ['Serviço', `${service.name}, ${service.duration_min} min`],
-      ['Barbeiro', staffName ?? 'Primeiro disponível'],
+      ['Barbeiro', bookedStaff ?? staffName ?? 'Primeiro disponível'],
       ['Data', formatDay(pending.date)],
       ['Horário', formatTime(pending.startsAt, shop.timezone)],
       ['Valor', formatBRL(service.price_cents)],
     ],
-    [service, staffName, pending, shop.timezone],
+    [service, staffName, bookedStaff, pending, shop.timezone],
   )
 
   if (!session) {
@@ -558,7 +560,7 @@ function DetailsAndConfirm(props: {
         {submitError ? <p role="alert" className="mb-4 text-sm text-danger">{submitError}</p> : null}
         {list}
         <p className="mt-5 text-sm text-ink-300">
-          Cancelamento online até {Math.round(shop.booking.cancel_limit_min / 60)}h antes do horário.
+          Você pode cancelar ou remarcar online {formatLimit(shop.booking.cancel_limit_min)}.
         </p>
         {footer(5, 'Confirmar agendamento', confirm, submitting)}
       </div>
@@ -571,7 +573,19 @@ function DetailsAndConfirm(props: {
         Seu horário está reservado, {profile.data?.full_name?.split(' ')[0]}. Você pode acompanhar e cancelar em “Minha conta”.
       </p>
       {list}
-      <div className="mt-8 grid gap-3 border-t border-ink-700 pt-4">
+      <div className="mt-6 border-t border-ink-700 pt-5">
+        <LocationCard
+          shopName={shop.name}
+          address={shop.address}
+          event={{
+            title: `${service.name} · ${shop.name}`,
+            startsAt: pending.startsAt,
+            endsAt: new Date(new Date(pending.startsAt).getTime() + service.duration_min * 60_000).toISOString(),
+            details: `${service.name}${bookedStaff ? ` com ${bookedStaff}` : ''}. Agendado pelo BARBER OS.`,
+          }}
+        />
+      </div>
+      <div className="mt-6 grid gap-3 border-t border-ink-700 pt-4">
         {contact ? (
           <a
             href={whatsappLink(
