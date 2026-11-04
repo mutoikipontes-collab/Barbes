@@ -122,7 +122,7 @@ try {
     await page.getByRole('link', { name: 'Ver meus agendamentos' }).click()
     await page.getByText('Corte teste com').first().waitFor({ timeout: 15000 })
     await page.getByRole('button', { name: 'Localização e salvar na agenda' }).click()
-    await page.getByRole('link', { name: 'Google Maps' }).waitFor()
+    await page.getByRole('button', { name: 'Salvar na agenda' }).waitFor()
   })
   await step('cliente-remarcar', async () => {
     await page.getByRole('button', { name: 'Remarcar' }).click()
