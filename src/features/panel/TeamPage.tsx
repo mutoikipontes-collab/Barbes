@@ -175,9 +175,10 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
         if (error) throw error
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['panel', shop.id] })
+    // espera a lista da equipe atualizar antes de fechar o formulário
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['public-shop', shop.slug] })
+      await queryClient.invalidateQueries({ queryKey: ['panel', shop.id] })
       onDone()
     },
   })

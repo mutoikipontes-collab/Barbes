@@ -117,8 +117,21 @@ function ServiceForm(props: {
       // Quem faz este serviço: remove os que saíram e adiciona os que entraram.
       // O que já está gravado: nada, se o serviço é novo (antes isto usava a sugestão e nada era gravado).
       const before = service ? linkedStaffIds : []
-      const removed = before.filter((s) => !who.includes(s))
-      const added = who.filter((s) => !before.includes(s))
+      // serviço novo sem mexer na lista: usa a equipe atual direto do banco
+      // (a lista da tela pode estar desatualizada logo depois de editar a equipe)
+      let target = who
+      if (!service && picked === null) {
+        const { data: current, error: staffError } = await supabase
+          .from('staff')
+          .select('id')
+          .eq('shop_id', shop.id)
+          .eq('active', true)
+          .eq('bookable', true)
+        if (staffError) throw staffError
+        target = (current ?? []).map((r) => r.id)
+      }
+      const removed = before.filter((s) => !target.includes(s))
+      const added = target.filter((s) => !before.includes(s))
       if (removed.length) {
         const { error } = await supabase.from('staff_services').delete().eq('service_id', id).in('staff_id', removed)
         if (error) throw error
