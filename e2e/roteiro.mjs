@@ -126,7 +126,8 @@ try {
     const day = page.getByRole('dialog').locator('button[aria-label]:not([disabled])').filter({ hasNotText: /‹|›|✕/ }).first()
     await day.waitFor({ timeout: 15000 })
     await page.waitForTimeout(800)
-    await page.getByRole('dialog').locator('.grid-cols-7 button:not([disabled])').first().click()
+    // segundo dia livre: longe o bastante para ainda poder remarcar e cancelar online
+    await page.getByRole('dialog').locator('.grid-cols-7 button:not([disabled])').nth(1).click()
   })
   await step('agendar-horario', async () => {
     const slotBtn = page.getByRole('dialog').getByRole('button', { name: /^\d{2}:\d{2}$/ }).first()
