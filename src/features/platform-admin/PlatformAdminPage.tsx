@@ -16,7 +16,7 @@ type AdminShop = {
   is_active: boolean
   created_at: string
   owner: { name: string; email: string | null } | null
-  subscription: { status: SubStatus; plan: string; price_cents: number }
+  subscription: { status: SubStatus; plan: string; price_cents: number; current_period_end: string | null }
   counts: { staff: number; customers: number; appointments_30d: number }
 }
 
@@ -66,6 +66,18 @@ export function PlatformAdminPage() {
     },
   })
 
+  const pay = useMutation({
+    mutationFn: async (shopId: string) => {
+      const { error } = await supabase.rpc('admin_register_payment', { p_shop_id: shopId, p_months: 1 })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-shops'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-overview'] })
+    },
+  })
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })
+
   const stats = overview.data
     ? [
         { label: 'Barbearias', value: String(overview.data.shops_total) },
@@ -93,7 +105,10 @@ export function PlatformAdminPage() {
         ))}
       </dl>
 
+      <SettingsForm />
+
       <h2 className="mt-10 font-sans text-sm font-semibold uppercase tracking-[0.16em] text-ink-500">Barbearias</h2>
+      {pay.isError ? <div className="mt-4"><Alert tone="error">{friendlyError(pay.error)}</Alert></div> : null}
       {update.isError ? <div className="mt-4"><Alert tone="error">{friendlyError(update.error)}</Alert></div> : null}
       {shops.isLoading ? (
         <div className="mt-4"><Spinner /></div>
@@ -111,7 +126,24 @@ export function PlatformAdminPage() {
                   {s.owner?.email ?? 'sem proprietário com login'} · {s.counts.staff} na equipe · {s.counts.customers} clientes ·{' '}
                   {s.counts.appointments_30d} agendamentos em 30 dias
                 </p>
+                {s.subscription.current_period_end ? (
+                  <p className={`text-sm ${s.subscription.current_period_end < today ? 'font-semibold text-danger' : 'text-gold-300'}`}>
+                    {s.subscription.status === 'trialing' ? 'Teste até' : 'Vence em'} {s.subscription.current_period_end.split('-').reverse().join('/')}
+                    {s.subscription.current_period_end < today ? ' · vencida' : ''}
+                  </p>
+                ) : null}
               </div>
+              <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                disabled={pay.isPending}
+                onClick={() => {
+                  if (window.confirm(`Registrar pagamento de 1 mês para ${s.name}? Ela fica Ativa por mais 1 mês.`)) pay.mutate(s.id)
+                }}
+                className="btn-gold inline-flex min-h-11 items-center rounded-xs px-4 text-sm font-semibold disabled:opacity-50"
+              >
+                Registrar pagamento
+              </button>
               <label className="flex items-center gap-2 text-sm">
                 <span className="sr-only">Situação da assinatura de {s.name}</span>
                 <select
@@ -129,12 +161,92 @@ export function PlatformAdminPage() {
                   ))}
                 </select>
               </label>
+              </div>
             </li>
           ))}
         </ul>
       )}
       <TempPassword />
     </main>
+  )
+}
+
+type Settings = { pix_key: string | null; pix_holder: string | null; support_whatsapp: string | null; trial_days: number; grace_days: number }
+
+function SettingsForm() {
+  const queryClient = useQueryClient()
+  const settings = useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('admin_get_settings')
+      if (error) throw error
+      return data as unknown as Settings
+    },
+  })
+  if (settings.isLoading) return <div className="mt-10"><Spinner /></div>
+  if (settings.isError || !settings.data) return <div className="mt-10"><Alert tone="error">{friendlyError(settings.error)}</Alert></div>
+  return <SettingsFormInner initial={settings.data} onSaved={() => queryClient.invalidateQueries({ queryKey: ['admin-settings'] })} />
+}
+
+function SettingsFormInner({ initial, onSaved }: { initial: Settings; onSaved: () => void }) {
+  const [f, setF] = useState({
+    pix_key: initial.pix_key ?? '',
+    pix_holder: initial.pix_holder ?? '',
+    support_whatsapp: initial.support_whatsapp ?? '',
+    trial_days: String(initial.trial_days),
+    grace_days: String(initial.grace_days),
+  })
+  const [saved, setSaved] = useState(false)
+  const set = (k: keyof typeof f) => (e: { target: { value: string } }) => {
+    setSaved(false)
+    setF((s) => ({ ...s, [k]: e.target.value }))
+  }
+  const save = useMutation({
+    mutationFn: async () => {
+      const digits = f.support_whatsapp.replace(/\D/g, '')
+      const wa = digits ? (digits.length === 10 || digits.length === 11 ? `+55${digits}` : `+${digits}`) : ''
+      const { error } = await supabase.rpc('admin_update_settings', {
+        p_pix_key: f.pix_key,
+        p_pix_holder: f.pix_holder,
+        p_support_whatsapp: wa,
+        p_trial_days: Number(f.trial_days),
+        p_grace_days: Number(f.grace_days),
+      })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      setSaved(true)
+      onSaved()
+    },
+  })
+  return (
+    <section className="mt-12">
+      <h2 className="font-sans text-sm font-semibold tracking-[0.16em] text-ink-500 uppercase">Cobrança e suporte</h2>
+      <p className="mt-2 text-sm text-ink-300">A chave Pix aparece só para os donos de barbearia, no aviso de mensalidade do painel. O WhatsApp de suporte aparece para quem precisa recuperar a senha e para enviar comprovantes.</p>
+      <form
+        className="mt-4 grid gap-4 md:grid-cols-2"
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault()
+          save.mutate()
+        }}
+      >
+        <div className="space-y-3 md:col-span-2">
+          {save.isError ? <Alert tone="error">{friendlyError(save.error)}</Alert> : null}
+          {saved ? <Alert tone="success">Configurações salvas.</Alert> : null}
+        </div>
+        <Field label="Chave Pix" name="pix" value={f.pix_key} onChange={set('pix_key')} placeholder="CPF, celular, e-mail ou chave aleatória" />
+        <Field label="Nome do titular do Pix" name="pixh" value={f.pix_holder} onChange={set('pix_holder')} />
+        <Field label="WhatsApp de suporte" name="wa" type="tel" inputMode="tel" value={f.support_whatsapp} onChange={set('support_whatsapp')} placeholder="(99) 91234-5678" />
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Dias de teste grátis" name="trial" type="number" inputMode="numeric" min={0} max={90} value={f.trial_days} onChange={set('trial_days')} hint="Vale para novas barbearias." />
+          <Field label="Tolerância (dias)" name="grace" type="number" inputMode="numeric" min={0} max={30} value={f.grace_days} onChange={set('grace_days')} hint="Depois do vencimento." />
+        </div>
+        <div className="max-w-xs">
+          <Button type="submit" loading={save.isPending}>Salvar</Button>
+        </div>
+      </form>
+    </section>
   )
 }
 

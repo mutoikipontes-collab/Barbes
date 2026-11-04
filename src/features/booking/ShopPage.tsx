@@ -98,7 +98,10 @@ export function ShopPage() {
   return (
     <>
       <header className="mx-auto flex max-w-[68rem] items-center justify-between gap-4 px-5 py-5">
-        <span className="font-display text-[17px] font-medium tracking-[0.14em] text-gold-500">{s.name}</span>
+        <span className="flex min-w-0 items-center gap-3">
+          {s.logo_url ? <img src={s.logo_url} alt="" className="size-10 flex-none rounded-full border border-gold-500 object-cover" /> : null}
+          <span className="truncate font-display text-[17px] font-medium tracking-[0.14em] text-gold-500">{s.name}</span>
+        </span>
         <nav aria-label="Principal" className="flex items-center gap-4 text-[15px]">
           <a href="#servicos" className="hidden hover:text-gold-300 sm:inline">Serviços</a>
           <a href="#barbeiros" className="hidden hover:text-gold-300 sm:inline">Barbeiros</a>
@@ -141,7 +144,14 @@ export function ShopPage() {
             )}
             {canBook ? <NextFree shop={s} /> : null}
           </div>
-          <Razor />
+          {s.cover_url ? (
+            <div className="relative mt-10 aspect-[4/5] w-full max-w-[30rem] justify-self-center overflow-hidden rounded-xs border border-ink-700 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.8)] md:mt-0">
+              <img src={s.cover_url} alt={`Ambiente da ${s.name}`} className="size-full object-cover" />
+              <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,transparent_60%,rgba(5,5,5,0.6))]" />
+            </div>
+          ) : (
+            <Razor />
+          )}
         </section>
 
         {s.services.length > 0 ? (

@@ -7,6 +7,7 @@ import { Alert, Button, Field, Spinner } from '@/components/ui'
 import { usePanel } from './context'
 import { useShopHours } from './queries'
 import { Card, Select, SectionTitle, TextArea, Toggle } from './ui'
+import { ImagePicker } from '@/components/ImagePicker'
 
 export function SettingsPage() {
   return (
@@ -35,6 +36,8 @@ function ShopForm() {
     max_advance_days: String(shop.max_advance_days),
     cancel_limit_min: String(shop.cancel_limit_min),
   })
+  const [logoUrl, setLogoUrl] = useState<string | null>(shop.logo_url)
+  const [coverUrl, setCoverUrl] = useState<string | null>(shop.cover_url)
   const [saved, setSaved] = useState(false)
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => {
     setSaved(false)
@@ -60,6 +63,8 @@ function ShopForm() {
           min_notice_min: Number(f.min_notice_min),
           max_advance_days: Number(f.max_advance_days),
           cancel_limit_min: Number(f.cancel_limit_min),
+          logo_url: logoUrl,
+          cover_url: coverUrl,
         })
         .eq('id', shop.id)
       if (error) throw error
@@ -84,6 +89,49 @@ function ShopForm() {
         <div className="md:col-span-2 space-y-3">
           {save.isError ? <Alert tone="error">{friendlyError(save.error)}</Alert> : null}
           {saved ? <Alert tone="success">Alterações salvas. A página pública já mostra os novos dados.</Alert> : null}
+        </div>
+        <div className="grid gap-6 md:col-span-2 md:grid-cols-[auto_1fr]">
+          <div>
+            <p className="mb-2 text-sm font-medium text-ink-300">Logo</p>
+            <ImagePicker
+              bucket="shop-media"
+              folder={shop.id}
+              maxSide={512}
+              value={logoUrl}
+              onChange={(u) => {
+                setSaved(false)
+                setLogoUrl(u)
+              }}
+              labels={{ add: 'Adicionar logo', change: 'Trocar logo', hint: 'Aparece no topo da sua página. Quadrada fica melhor.' }}
+              preview={(url, busy) => (
+                <div className="relative grid size-24 place-items-center overflow-hidden rounded-full border border-gold-500 bg-ink-950">
+                  {url ? <img src={url} alt="Logo" className="size-full object-cover" /> : <span className="font-display text-3xl text-gold-300">{f.name.trim()[0] ?? 'B'}</span>}
+                  {busy}
+                </div>
+              )}
+            />
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-medium text-ink-300">Foto de capa</p>
+            <ImagePicker
+              bucket="shop-media"
+              folder={shop.id}
+              maxSide={1600}
+              value={coverUrl}
+              onChange={(u) => {
+                setSaved(false)
+                setCoverUrl(u)
+              }}
+              labels={{ add: 'Adicionar foto de capa', change: 'Trocar foto de capa', hint: 'Uma foto do ambiente da barbearia. Aparece em destaque no topo da página.' }}
+              preview={(url, busy) => (
+                <div className="relative aspect-[16/9] w-full max-w-md overflow-hidden rounded-xs border border-ink-700 bg-ink-950">
+                  {url ? <img src={url} alt="Capa" className="size-full object-cover" /> : <span className="grid size-full place-items-center text-sm text-ink-500">Sem foto de capa</span>}
+                  {busy}
+                </div>
+              )}
+            />
+          </div>
+          <p className="text-xs text-ink-300 md:col-span-2">A logo e a capa só valem depois de tocar em “Salvar dados”.</p>
         </div>
         <Field label="Nome" name="name" value={f.name} onChange={set('name')} maxLength={80} required />
         <Field label="Endereço da página" name="slug" value={`/${shop.slug}`} disabled hint="O endereço não muda depois de criado." />

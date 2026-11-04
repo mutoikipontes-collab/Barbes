@@ -322,6 +322,14 @@ export type Database = {
         Returns: { staff_id: string; starts_at: string; ends_at: string }[]
       }
       get_my_shops: { Args: never; Returns: Json }
+      get_platform_info: { Args: never; Returns: Json }
+      get_shop_billing: { Args: { p_shop_id: string }; Returns: Json }
+      admin_get_settings: { Args: never; Returns: Json }
+      admin_update_settings: {
+        Args: { p_pix_key: string; p_pix_holder: string; p_support_whatsapp: string; p_trial_days: number; p_grace_days: number }
+        Returns: Json
+      }
+      admin_register_payment: { Args: { p_shop_id: string; p_months?: number }; Returns: Json }
       get_public_shop: { Args: { p_slug: string }; Returns: Json }
       get_shop_subscription: { Args: { p_shop_id: string }; Returns: Json }
       is_slug_available: { Args: { p_slug: string }; Returns: boolean }

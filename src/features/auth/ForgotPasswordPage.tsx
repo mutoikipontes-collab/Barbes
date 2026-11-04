@@ -1,12 +1,13 @@
 import { Link } from 'react-router'
 import { whatsappLink } from '@/lib/format'
 import { AuthLayout } from './AuthLayout'
+import { usePlatformInfo } from './platform'
 
-const SUPPORT = import.meta.env.VITE_SUPPORT_WHATSAPP as string | undefined
 
 // Enquanto a recuperação por e-mail não está configurada no Supabase, o acesso é recuperado
 // pelo suporte: o administrador gera uma senha temporária e a pessoa troca depois de entrar.
 export function ForgotPasswordPage() {
+  const SUPPORT = usePlatformInfo().data?.support_whatsapp ?? null
   return (
     <AuthLayout
       title="Recuperar acesso"

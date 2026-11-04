@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return reply(405, { error: 'Método não permitido.' })
 
-  let payload: { full_name?: unknown; email?: unknown; password?: unknown }
+  let payload: { full_name?: unknown; email?: unknown; password?: unknown; terms_accepted_at?: unknown }
   try {
     payload = await req.json()
   } catch {
@@ -31,6 +31,7 @@ Deno.serve(async (req) => {
   if (fullName.length < 2 || fullName.length > 80) return reply(400, { error: 'Informe seu nome (de 2 a 80 caracteres).' })
   if (email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return reply(400, { error: 'Informe um e-mail válido.' })
   if (password.length < 8 || password.length > 72) return reply(400, { error: 'A senha precisa ter de 8 a 72 caracteres.' })
+  if (!payload.terms_accepted_at) return reply(400, { error: 'Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.' })
 
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -40,7 +41,8 @@ Deno.serve(async (req) => {
     email,
     password,
     email_confirm: true,
-    user_metadata: { full_name: fullName },
+    // a data do aceite é a do servidor, não a enviada pelo navegador
+    user_metadata: { full_name: fullName, terms_accepted_at: new Date().toISOString() },
   })
 
   if (error) {

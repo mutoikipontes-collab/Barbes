@@ -5,6 +5,7 @@ import { friendlyError } from '@/lib/errors'
 import { Alert, FullPageLoading, Wordmark } from '@/components/ui'
 import { useMyShops } from '@/features/auth/queries'
 import { PanelContext } from './context'
+import { BillingBanner } from './BillingBanner'
 
 const TABS = [
   { to: '', label: 'Início', end: true, ownerOnly: true },
@@ -67,6 +68,7 @@ export function PanelLayout() {
           </nav>
         </header>
         <main className="mx-auto max-w-[68rem] px-4 py-8">
+          <BillingBanner />
           <Outlet />
         </main>
       </div>
