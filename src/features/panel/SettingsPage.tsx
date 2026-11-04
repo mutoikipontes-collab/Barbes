@@ -8,6 +8,7 @@ import { usePanel } from './context'
 import { useShopHours } from './queries'
 import { Card, Select, SectionTitle, TextArea, Toggle } from './ui'
 import { ImagePicker } from '@/components/ImagePicker'
+import { CIDADES_MA } from '@/data/cidadesMA'
 
 export function SettingsPage() {
   return (
@@ -145,7 +146,12 @@ function ShopForm() {
         <Field label="Telefone" name="phone" inputMode="tel" value={f.phone} onChange={set('phone')} />
         <Field label="E-mail" name="email" type="email" value={f.email} onChange={set('email')} />
         <Field label="Endereço (rua, número, bairro)" name="address_line" value={f.address_line} onChange={set('address_line')} />
-        <Field label="Cidade" name="city" value={f.city} onChange={set('city')} />
+        <Field label="Cidade" name="city" list="cidades-ma" autoComplete="off" value={f.city} onChange={set('city')} hint="Escreva igual ao nome oficial (ex.: Açailândia). É por ele que o cliente encontra você." />
+        <datalist id="cidades-ma">
+          {CIDADES_MA.map((c) => (
+            <option key={c} value={c} />
+          ))}
+        </datalist>
         <div className="grid grid-cols-2 gap-4">
           <Field label="UF" name="state" maxLength={2} value={f.state} onChange={set('state')} />
           <Field label="CEP" name="postal_code" inputMode="numeric" value={f.postal_code} onChange={set('postal_code')} />

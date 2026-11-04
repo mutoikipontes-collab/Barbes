@@ -25,8 +25,8 @@ import { guestBookingLink, saveGuestBooking } from '@/lib/guestBookings'
 import type { PendingBooking, PublicShop } from './types'
 
 const TITLES = [
-  'Escolha o serviço',
   'Escolha o barbeiro',
+  'Escolha o tipo de corte',
   'Escolha a data',
   'Escolha o horário',
   'Seus dados',
@@ -54,9 +54,10 @@ function initialState(shop: PublicShop, start: BookingStart): State {
     const p = start.pending
     return { step: 5, serviceId: p.serviceId, staffId: p.staffId, date: p.date, startsAt: p.startsAt, month: monthStart(p.date) }
   }
+  // ordem: 1 barbeiro, 2 tipo de corte, 3 data, 4 horário
   const serviceId = start.serviceId ?? null
   const staffId = start.staffId
-  const step = !serviceId ? 1 : staffId === undefined ? 2 : 3
+  const step = staffId === undefined ? 1 : !serviceId ? 2 : 3
   return { step, serviceId, staffId, date: null, startsAt: null, month: monthStart(today) }
 }
 
@@ -82,7 +83,7 @@ export function BookingDialog({ shop, start, onClose }: { shop: PublicShop; star
     setSt((s) => ({ ...s, ...patch }))
   }
 
-  const context = [service?.name, st.staffId === null ? 'qualquer barbeiro' : staff?.display_name].filter(Boolean).join(' com ')
+  const context = [st.staffId === null ? 'Qualquer barbeiro' : staff?.display_name, service?.name].filter(Boolean).join(' · ')
 
   return (
     <dialog
@@ -118,32 +119,31 @@ export function BookingDialog({ shop, start, onClose }: { shop: PublicShop; star
 
           {st.step === 1 && (
             <OptionList>
-              {shop.services
-                .filter((s) => !staff || staff.service_ids.includes(s.id))
-                .map((s) => (
-                <Option key={s.id} pressed={st.serviceId === s.id} onClick={() => go({ serviceId: s.id, date: null, startsAt: null, step: st.staffId === undefined ? 2 : 3 })}>
-                  <span>
-                    <b className="block font-medium">{s.name}</b>
-                    <small className="text-ink-300">{s.duration_min} min</small>
-                  </span>
-                  <span className="font-display text-lg text-gold-300">{formatBRL(s.price_cents)}</span>
-                </Option>
-              ))}
-            </OptionList>
-          )}
-
-          {st.step === 2 && service && (
-            <OptionList>
-              <Option pressed={st.staffId === null} onClick={() => go({ staffId: null, date: null, startsAt: null, step: 3 })}>
+              <Option
+                pressed={st.staffId === null}
+                onClick={() => go({ staffId: null, date: null, startsAt: null, step: st.serviceId ? 3 : 2 })}
+              >
                 <span>
                   <b className="block font-medium">Sem preferência</b>
                   <small className="text-ink-300">O primeiro barbeiro livre no horário escolhido</small>
                 </span>
               </Option>
               {shop.staff
-                .filter((b) => b.service_ids.includes(service.id))
+                .filter((b) => b.service_ids.length > 0 && (!st.serviceId || b.service_ids.includes(st.serviceId)))
                 .map((b) => (
-                  <Option key={b.id} pressed={st.staffId === b.id} onClick={() => go({ staffId: b.id, date: null, startsAt: null, step: 3 })}>
+                  <Option
+                    key={b.id}
+                    pressed={st.staffId === b.id}
+                    onClick={() =>
+                      go({
+                        staffId: b.id,
+                        date: null,
+                        startsAt: null,
+                        // já veio com o corte escolhido (e este barbeiro faz): pula para a data
+                        step: st.serviceId && b.service_ids.includes(st.serviceId) ? 3 : 2,
+                      })
+                    }
+                  >
                     <span className="flex items-center gap-4">
                       <Initials name={b.display_name} photoUrl={b.photo_url} />
                       <span>
@@ -151,6 +151,22 @@ export function BookingDialog({ shop, start, onClose }: { shop: PublicShop; star
                         {b.specialties.length > 0 ? <small className="text-ink-300">{b.specialties.join(', ')}</small> : null}
                       </span>
                     </span>
+                  </Option>
+                ))}
+            </OptionList>
+          )}
+
+          {st.step === 2 && (
+            <OptionList>
+              {shop.services
+                .filter((s) => (staff ? staff.service_ids.includes(s.id) : shop.staff.some((b) => b.service_ids.includes(s.id))))
+                .map((s) => (
+                  <Option key={s.id} pressed={st.serviceId === s.id} onClick={() => go({ serviceId: s.id, date: null, startsAt: null, step: 3 })}>
+                    <span>
+                      <b className="block font-medium">{s.name}</b>
+                      <small className="text-ink-300">{s.duration_min} min</small>
+                    </span>
+                    <span className="font-display text-lg text-gold-300">{formatBRL(s.price_cents)}</span>
                   </Option>
                 ))}
             </OptionList>

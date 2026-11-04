@@ -16,7 +16,7 @@ type AdminShop = {
   is_active: boolean
   created_at: string
   owner: { name: string; email: string | null } | null
-  subscription: { status: SubStatus; plan: string; price_cents: number; current_period_end: string | null }
+  subscription: { status: SubStatus; plan: string; price_cents: number; current_period_end: string | null; tier: 'basico' | 'plus' | 'premium' }
   counts: { staff: number; customers: number; appointments_30d: number }
 }
 
@@ -66,6 +66,14 @@ export function PlatformAdminPage() {
     },
   })
 
+  const tier = useMutation({
+    mutationFn: async ({ shopId, value }: { shopId: string; value: string }) => {
+      const { error } = await supabase.rpc('admin_set_tier', { p_shop_id: shopId, p_tier: value })
+      if (error) throw error
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-shops'] }),
+  })
+
   const pay = useMutation({
     mutationFn: async (shopId: string) => {
       const { error } = await supabase.rpc('admin_register_payment', { p_shop_id: shopId, p_months: 1 })
@@ -110,6 +118,7 @@ export function PlatformAdminPage() {
       <h2 className="mt-10 font-sans text-sm font-semibold uppercase tracking-[0.16em] text-ink-500">Barbearias</h2>
       {pay.isError ? <div className="mt-4"><Alert tone="error">{friendlyError(pay.error)}</Alert></div> : null}
       {update.isError ? <div className="mt-4"><Alert tone="error">{friendlyError(update.error)}</Alert></div> : null}
+      {tier.isError ? <div className="mt-4"><Alert tone="error">{friendlyError(tier.error)}</Alert></div> : null}
       {shops.isLoading ? (
         <div className="mt-4"><Spinner /></div>
       ) : shops.isError ? (
@@ -159,6 +168,19 @@ export function PlatformAdminPage() {
                   {STATUS_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
+                </select>
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <span className="text-ink-300">Destaque na busca</span>
+                <select
+                  value={s.subscription.tier}
+                  disabled={tier.isPending}
+                  onChange={(e) => tier.mutate({ shopId: s.id, value: e.target.value })}
+                  className="min-h-11 rounded-xs border border-ink-700 bg-ink-900 px-3 text-ink-100"
+                >
+                  <option value="premium">Premium (1º)</option>
+                  <option value="plus">Plus (2º)</option>
+                  <option value="basico">Básico (3º)</option>
                 </select>
               </label>
               </div>

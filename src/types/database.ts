@@ -341,7 +341,9 @@ export type Database = {
       }
       get_my_shops: { Args: never; Returns: Json }
       get_platform_info: { Args: never; Returns: Json }
-      list_public_shops: { Args: { p_query?: string }; Returns: Json }
+      list_public_shops: { Args: { p_query?: string; p_city?: string }; Returns: Json }
+      public_city_counts: { Args: never; Returns: Json }
+      admin_set_tier: { Args: { p_shop_id: string; p_tier: string }; Returns: undefined }
       get_shop_billing: { Args: { p_shop_id: string }; Returns: Json }
       admin_get_settings: { Args: never; Returns: Json }
       admin_update_settings: {
