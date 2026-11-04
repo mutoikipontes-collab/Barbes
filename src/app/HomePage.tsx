@@ -118,9 +118,9 @@ export function HomePage() {
           ) : shops.isLoading ? (
             <Spinner />
           ) : shops.data && shops.data.length > 0 ? (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {shops.data.map((s) => (
-                <li key={s.slug}>
+                <li key={s.slug} className="min-w-0">
                   <ShopCard shop={s} />
                 </li>
               ))}

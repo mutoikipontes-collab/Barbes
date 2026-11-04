@@ -12,6 +12,8 @@ try {
   await page.getByRole('option', { name: /Açailândia.*1 barbearia/ }).click()
   await page.getByText('Destaque').first().waitFor({ timeout: 15000 })
   await page.screenshot({ path: 'shots/01-busca.png', fullPage: true })
+  const w = await page.evaluate(() => document.documentElement.scrollWidth)
+  log.push(`largura da página: ${w} (tela 390)`)
   log.push('OK busca Açailândia com selo Destaque')
   await page.getByRole('link', { name: /Barbearia Simulação/ }).click()
   await page.getByRole('button', { name: 'Agendar horário' }).click()
