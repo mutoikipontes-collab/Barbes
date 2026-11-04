@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
@@ -28,6 +29,8 @@ export function PlanPage() {
   const queryClient = useQueryClient()
   const plans = usePlans()
   const [copied, setCopied] = useState(false)
+  const [params, setParams] = useSearchParams()
+  const payRef = useRef<HTMLDivElement>(null)
   const billing = useQuery({
     queryKey: ['panel', shop.id, 'billing'],
     queryFn: async () => {
@@ -41,11 +44,23 @@ export function PlanPage() {
       const { error } = await supabase.rpc('request_plan', { p_shop_id: shop.id, p_tier: tier })
       if (error) throw error
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setCopied(false)
-      queryClient.invalidateQueries({ queryKey: ['panel', shop.id, 'billing'] })
+      await queryClient.invalidateQueries({ queryKey: ['panel', shop.id, 'billing'] })
+      // leva direto para o Pix do plano escolhido
+      payRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     },
   })
+
+  // veio da página Planos com "Assinar X": já escolhe esse plano
+  const wanted = params.get('escolher')
+  const loaded = !!billing.data
+  useEffect(() => {
+    if (!loaded || !wanted) return
+    setParams({}, { replace: true })
+    if (wanted === 'basico' || wanted === 'plus' || wanted === 'premium') choose.mutate(wanted)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, wanted])
 
   if (billing.isLoading || plans.isLoading) return <Spinner />
   if (billing.isError || !billing.data) return <Alert tone="error">{billing.isError ? friendlyError(billing.error) : 'Plano não encontrado.'}</Alert>
@@ -97,7 +112,7 @@ export function PlanPage() {
         })}
       </div>
 
-      <div className="mt-8 rounded-xs border border-ink-700 bg-ink-900 p-4">
+      <div ref={payRef} className="mt-8 scroll-mt-28 rounded-xs border border-ink-700 bg-ink-900 p-4">
         <h3 className="font-display text-xl">Como pagar</h3>
         <p className="mt-2 text-sm text-ink-300">
           Plano {payName}: <b className="text-ink-100">{formatBRL(payPrice)}/mês</b>, por Pix. Depois de pagar, envie o comprovante; a liberação é feita em seguida.

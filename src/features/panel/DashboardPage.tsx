@@ -75,6 +75,7 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-10">
+      <PlanSummary />
       {!ready ? (
         <Card className="border-gold-500/50">
           <h2 className="mb-2 text-2xl">Abra seus agendamentos online</h2>
@@ -158,6 +159,36 @@ export function DashboardPage() {
           </section>
         </>
       )}
+    </div>
+  )
+}
+
+/** Resumo do plano no início do painel, com o caminho para assinar ou trocar. */
+function PlanSummary() {
+  const { shop } = usePanel()
+  const billing = useQuery({
+    queryKey: ['panel', shop.id, 'billing'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_shop_billing', { p_shop_id: shop.id })
+      if (error) throw error
+      return data as unknown as { status: string; plan: string; price_cents: number; requested_plan: string | null; requested_price_cents: number | null } | null
+    },
+  })
+  const b = billing.data
+  if (!b) return null
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xs border border-gold-500/50 bg-ink-900 px-4 py-3">
+      <p>
+        Seu plano: <b>{b.plan}</b> <span className="text-ink-300">({formatBRL(b.price_cents)}/mês{b.status === 'trialing' ? ', em teste grátis' : ''})</span>
+        {b.requested_plan ? (
+          <span className="block text-sm text-gold-300">
+            Você escolheu o {b.requested_plan} ({formatBRL(b.requested_price_cents ?? 0)}/mês): falta pagar o Pix.
+          </span>
+        ) : null}
+      </p>
+      <Link to="plano" className="btn-gold inline-flex min-h-11 items-center rounded-xs px-4 font-semibold">
+        {b.requested_plan ? 'Pagar plano' : 'Assinar ou trocar plano'}
+      </Link>
     </div>
   )
 }

@@ -1,11 +1,28 @@
-import { Link } from 'react-router'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router'
+import { useAuth } from '@/features/auth/AuthProvider'
+import { useMyShops } from '@/features/auth/queries'
 import { Alert, Spinner, Wordmark } from '@/components/ui'
 import { friendlyError } from '@/lib/errors'
-import { PlanCard, usePlans } from './plans'
+import { PlanCard, usePlans, type Tier } from './plans'
 
 /** Planos para barbearias: Básico, Plus e Premium. */
 export function PlansPage() {
   const plans = usePlans()
+  const { session } = useAuth()
+  const shops = useMyShops()
+  const navigate = useNavigate()
+  const owned = (shops.data ?? []).filter((s) => s.role === 'owner')
+  const [picking, setPicking] = useState<Tier | null>(null)
+
+  // Assinar: sem conta → cadastro; com uma barbearia → aba Plano dela; com várias → escolher qual
+  const subscribe = (tier: Tier) => {
+    if (!session) return navigate('/cadastro', { state: { from: '/conta?nova-barbearia=1' } })
+    if (owned.length === 0) return navigate('/conta?nova-barbearia=1')
+    if (owned.length === 1) return navigate(`/painel/${owned[0].id}/plano?escolher=${tier}`)
+    setPicking(tier)
+  }
+
   return (
     <main className="mx-auto w-full max-w-[68rem] px-5 py-10">
       <Link to="/" aria-label="Início"><Wordmark /></Link>
@@ -24,7 +41,30 @@ export function PlansPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-3">
             {(plans.data ?? []).map((p) => (
-              <PlanCard key={p.tier} plan={p} highlight={p.tier === 'premium'} badge={p.tier === 'premium' ? 'Mais visibilidade' : undefined} />
+              <PlanCard key={p.tier} plan={p} highlight={p.tier === 'premium'} badge={p.tier === 'premium' ? 'Mais visibilidade' : undefined}>
+                <button
+                  type="button"
+                  onClick={() => subscribe(p.tier)}
+                  disabled={!!session && shops.isLoading}
+                  className="btn-gold inline-flex min-h-12 w-full items-center justify-center rounded-xs px-4 font-semibold disabled:opacity-60"
+                >
+                  Assinar {p.name}
+                </button>
+                {picking === p.tier ? (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-sm text-ink-300">Para qual barbearia?</p>
+                    {owned.map((s) => (
+                      <Link
+                        key={s.id}
+                        to={`/painel/${s.id}/plano?escolher=${p.tier}`}
+                        className="flex min-h-11 items-center rounded-xs border border-ink-700 px-3 hover:border-gold-500"
+                      >
+                        {s.name}
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
+              </PlanCard>
             ))}
           </div>
         )}

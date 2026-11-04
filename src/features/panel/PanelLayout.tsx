@@ -9,12 +9,12 @@ import { BillingBanner } from './BillingBanner'
 
 const TABS = [
   { to: '', label: 'Início', end: true, ownerOnly: true },
+  { to: 'plano', label: 'Plano', end: false, ownerOnly: true },
   { to: 'agenda', label: 'Agenda', end: false, ownerOnly: false },
   { to: 'servicos', label: 'Serviços', end: false, ownerOnly: true },
   { to: 'equipe', label: 'Equipe', end: false, ownerOnly: true },
   { to: 'clientes', label: 'Clientes', end: false, ownerOnly: false },
   { to: 'configuracoes', label: 'Configurações', end: false, ownerOnly: true },
-  { to: 'plano', label: 'Plano', end: false, ownerOnly: true },
 ]
 
 export function PanelLayout() {

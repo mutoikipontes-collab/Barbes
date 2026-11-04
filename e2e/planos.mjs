@@ -77,10 +77,15 @@ try {
       const code = await page.evaluate(() => navigator.clipboard.readText())
       if (!code.endsWith('FB3F') || !code.includes('Iolanda dos Santos Pontes')) throw new Error(`Pix do Básico errado: ${code.slice(-30)}`)
     })
-    await step('dono-escolhe-premium-no-painel', async () => {
-      await page.getByRole('link', { name: 'Ver e escolher plano' }).click()
-      await page.getByRole('heading', { name: 'Plano', exact: true }).waitFor({ timeout: 15000 })
-      await page.getByRole('button', { name: 'Escolher Premium' }).click()
+    await step('inicio-do-painel-mostra-plano', async () => {
+      await page.getByRole('link', { name: 'Início', exact: true }).click()
+      await page.getByText(/Seu plano: Básico/).waitFor({ timeout: 15000 })
+      await page.getByRole('link', { name: 'Assinar ou trocar plano' }).waitFor()
+    })
+    await step('assinar-premium-pela-pagina-planos', async () => {
+      await page.goto(`${BASE}/planos`)
+      await page.getByRole('button', { name: 'Assinar Premium' }).click()
+      await page.waitForURL(/\/painel\/.+\/plano/, { timeout: 15000 })
       await page.getByText('Aguardando pagamento.').waitFor({ timeout: 15000 })
       await page.getByText(/Você escolheu o plano Premium/).waitFor()
       await page.getByRole('button', { name: 'Copiar Pix copia e cola' }).click()
