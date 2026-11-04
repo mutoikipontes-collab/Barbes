@@ -107,8 +107,7 @@ try {
     await page.getByLabel('Sua cidade').fill('Açai')
     const opt = page.getByRole('option', { name: /Açailândia/ })
     await opt.waitFor()
-    const txt = await opt.textContent()
-    if (!/[1-9]\d* barbearia/.test(txt ?? '')) throw new Error(`contagem: ${txt}`)
+    await page.getByRole('option', { name: /Açailândia.*[1-9]\d* barbearia/ }).waitFor({ timeout: 10000 })
   })
   await step('cidade-lista-barbearias', async () => {
     await page.getByRole('option', { name: /Açailândia/ }).click()

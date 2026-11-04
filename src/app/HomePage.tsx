@@ -87,7 +87,7 @@ export function HomePage() {
           <p className="mt-5 max-w-[34rem] text-[1.08rem] text-ink-300">Escolha sua cidade, a barbearia, o barbeiro e o horário. Sem ligar e sem esperar resposta.</p>
 
           <div className="mt-8 grid max-w-xl gap-4">
-            <CityPicker value={city} counts={counts.data} onChange={chooseCity} />
+            <CityPicker value={city} counts={counts.data} onFocus={() => void counts.refetch()} onChange={chooseCity} />
             <label className="block">
               <span className="mb-1.5 block text-sm font-medium">Buscar barbearia pelo nome</span>
               <span className="relative block">
@@ -152,7 +152,7 @@ function SearchIcon() {
 }
 
 /** Campo de cidade com sugestões das cidades do Maranhão. */
-function CityPicker({ value, counts, onChange }: { value: string; counts?: Record<string, number>; onChange: (c: string) => void }) {
+function CityPicker({ value, counts, onFocus, onChange }: { value: string; counts?: Record<string, number>; onFocus: () => void; onChange: (c: string) => void }) {
   const id = useId()
   const [text, setText] = useState(value)
   const [open, setOpen] = useState(false)
@@ -203,7 +203,10 @@ function CityPicker({ value, counts, onChange }: { value: string; counts?: Recor
           autoComplete="off"
           value={text}
           placeholder="Digite o nome da cidade"
-          onFocus={() => setOpen(true)}
+          onFocus={() => {
+            setOpen(true)
+            onFocus()
+          }}
           onChange={(e) => {
             setText(e.target.value)
             setOpen(true)
