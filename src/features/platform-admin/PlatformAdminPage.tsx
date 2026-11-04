@@ -71,7 +71,10 @@ export function PlatformAdminPage() {
       const { error } = await supabase.rpc('admin_set_tier', { p_shop_id: shopId, p_tier: value })
       if (error) throw error
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-shops'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-shops'] })
+      queryClient.invalidateQueries({ queryKey: ['panel'] })
+    },
   })
 
   const pay = useMutation({
@@ -171,16 +174,19 @@ export function PlatformAdminPage() {
                 </select>
               </label>
               <label className="flex items-center gap-2 text-sm">
-                <span className="text-ink-300">Destaque na busca</span>
+                <span className="text-ink-300">Plano</span>
                 <select
                   value={s.subscription.tier}
                   disabled={tier.isPending}
-                  onChange={(e) => tier.mutate({ shopId: s.id, value: e.target.value })}
+                  onChange={(e) => {
+                    const label = e.target.selectedOptions[0]?.textContent ?? e.target.value
+                    if (window.confirm(`Mudar ${s.name} para ${label}? O valor da mensalidade muda junto.`)) tier.mutate({ shopId: s.id, value: e.target.value })
+                  }}
                   className="min-h-11 rounded-xs border border-ink-700 bg-ink-900 px-3 text-ink-100"
                 >
-                  <option value="premium">Premium (1º)</option>
-                  <option value="plus">Plus (2º)</option>
-                  <option value="basico">Básico (3º)</option>
+                  <option value="premium">Premium · R$ 79,90 (1º na busca)</option>
+                  <option value="plus">Plus · R$ 49,90 (2º na busca)</option>
+                  <option value="basico">Básico · R$ 29,90 (3º na busca)</option>
                 </select>
               </label>
               </div>
@@ -193,7 +199,16 @@ export function PlatformAdminPage() {
   )
 }
 
-type Settings = { pix_key: string | null; pix_holder: string | null; pix_code: string | null; support_whatsapp: string | null; trial_days: number; grace_days: number }
+type Settings = {
+  pix_key: string | null
+  pix_holder: string | null
+  pix_code: string | null
+  pix_code_plus: string | null
+  pix_code_premium: string | null
+  support_whatsapp: string | null
+  trial_days: number
+  grace_days: number
+}
 
 function SettingsForm() {
   const queryClient = useQueryClient()
@@ -215,6 +230,8 @@ function SettingsFormInner({ initial, onSaved }: { initial: Settings; onSaved: (
     pix_key: initial.pix_key ?? '',
     pix_holder: initial.pix_holder ?? '',
     pix_code: initial.pix_code ?? '',
+    pix_code_plus: initial.pix_code_plus ?? '',
+    pix_code_premium: initial.pix_code_premium ?? '',
     support_whatsapp: initial.support_whatsapp ?? '',
     trial_days: String(initial.trial_days),
     grace_days: String(initial.grace_days),
@@ -235,6 +252,8 @@ function SettingsFormInner({ initial, onSaved }: { initial: Settings; onSaved: (
         p_trial_days: Number(f.trial_days),
         p_grace_days: Number(f.grace_days),
         p_pix_code: f.pix_code,
+        p_pix_code_plus: f.pix_code_plus,
+        p_pix_code_premium: f.pix_code_premium,
       })
       if (error) throw error
     },
@@ -262,7 +281,13 @@ function SettingsFormInner({ initial, onSaved }: { initial: Settings; onSaved: (
         <Field label="Chave Pix" name="pix" value={f.pix_key} onChange={set('pix_key')} placeholder="CPF, celular, e-mail ou chave aleatória" />
         <Field label="Nome do titular do Pix" name="pixh" value={f.pix_holder} onChange={set('pix_holder')} />
         <div className="md:col-span-2">
-          <Field label="Pix copia e cola (opcional, com valor da mensalidade)" name="pixc" value={f.pix_code} onChange={set('pix_code')} placeholder="00020126..." hint="Gere no app do banco: Pix → Cobrar → valor da mensalidade → copiar código." />
+          <Field label="Pix copia e cola – plano Básico (R$ 29,90)" name="pixc" value={f.pix_code} onChange={set('pix_code')} placeholder="00020126..." hint="Gere no app do banco: Pix → Cobrar → valor do plano → copiar código." />
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Pix copia e cola – plano Plus (R$ 49,90)" name="pixcp" value={f.pix_code_plus} onChange={set('pix_code_plus')} placeholder="00020126..." />
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Pix copia e cola – plano Premium (R$ 79,90)" name="pixcpr" value={f.pix_code_premium} onChange={set('pix_code_premium')} placeholder="00020126..." />
         </div>
         <Field label="WhatsApp de suporte" name="wa" type="tel" inputMode="tel" value={f.support_whatsapp} onChange={set('support_whatsapp')} placeholder="(99) 91234-5678" />
         <div className="grid grid-cols-2 gap-3">

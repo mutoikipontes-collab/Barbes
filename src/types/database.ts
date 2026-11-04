@@ -347,7 +347,7 @@ export type Database = {
       get_shop_billing: { Args: { p_shop_id: string }; Returns: Json }
       admin_get_settings: { Args: never; Returns: Json }
       admin_update_settings: {
-        Args: { p_pix_key: string; p_pix_holder: string; p_support_whatsapp: string; p_trial_days: number; p_grace_days: number; p_pix_code?: string }
+        Args: { p_pix_key: string; p_pix_holder: string; p_support_whatsapp: string; p_trial_days: number; p_grace_days: number; p_pix_code: string; p_pix_code_plus: string; p_pix_code_premium: string }
         Returns: Json
       }
       admin_register_payment: { Args: { p_shop_id: string; p_months?: number }; Returns: Json }

@@ -74,6 +74,22 @@ export function BillingBanner() {
           <p className="text-ink-300">
             Plano {b.plan}: <b className="text-ink-100">{price}/mês</b>. Pague por Pix e envie o comprovante. A liberação é feita em seguida.
           </p>
+          <p className="text-ink-300">
+            Planos: Básico R$ 29,90 · Plus R$ 49,90 (aparece antes das Básicas na busca) · Premium R$ 79,90 (aparece em primeiro, com selo Destaque).
+            {b.support_whatsapp ? (
+              <>
+                {' '}
+                <a
+                  href={whatsappLink(b.support_whatsapp, `Olá! Quero mudar o plano da barbearia ${shop.name} no BARBER OS.`)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-semibold text-gold-300 underline underline-offset-4"
+                >
+                  Mudar de plano
+                </a>
+              </>
+            ) : null}
+          </p>
           {b.pix_code ? (
             <div className="space-y-2">
               <p className="text-ink-300">Pix copia e cola (o valor já vem preenchido):</p>
