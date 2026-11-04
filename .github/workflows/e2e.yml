@@ -1,0 +1,25 @@
+name: Teste de ponta a ponta
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --no-audit --no-fund playwright@1 && npx playwright install --with-deps chromium
+      - run: node e2e/roteiro.mjs
+      - if: always()
+        run: |
+          cd shots
+          git init -q -b e2e-results
+          git add .
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -q -m "resultado do teste"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" e2e-results
