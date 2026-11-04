@@ -31,8 +31,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // para os dados de uma conta nunca aparecerem para outra.
       const nextUser = next?.user.id ?? null
       if (nextUser !== currentUser) {
-        queryClient.clear()
+        const hadUser = currentUser !== null
         currentUser = nextUser
+        // resetQueries apaga os dados mas mantém as telas abertas ligadas às consultas (clear() as desligava,
+        // e listas como a agenda paravam de atualizar). Na primeira sessão da página não há o que apagar.
+        if (hadUser || nextUser === null) void queryClient.resetQueries()
       }
       setSession(next)
       if (event === 'PASSWORD_RECOVERY') setRecovering(true)

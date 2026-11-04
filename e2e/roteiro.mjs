@@ -177,15 +177,11 @@ try {
     await page.getByLabel('Nome do cliente').fill('Cliente Balcão')
     await page.getByLabel('Celular com DDD').fill('11912345678')
     await page.getByRole('button', { name: 'Agendar', exact: true }).click()
-    await page.getByRole('button', { name: 'Novo agendamento' }).waitFor({ timeout: 15000 })
+    await page.getByLabel('Nome do cliente').waitFor({ state: 'detached', timeout: 15000 })
   })
 
   await step('agenda-dia-seguinte', async () => {
-    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })
-    const wd = new Date(today + 'T12:00:00Z').getUTCDay()
-    if (wd === 0) await page.getByRole('button', { name: 'Próxima semana' }).click()
-    const tomorrowDay = String(Number(new Date(Date.now() + 86400000).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }).slice(8)))
-    await page.locator('.grid-cols-7 button').filter({ hasText: new RegExp(`^\\D*${tomorrowDay}\\D*$`) }).first().click()
+    // a agenda já abre no dia do agendamento criado
     await page.getByText('Cliente Balcão').first().waitFor({ timeout: 15000 })
   })
 

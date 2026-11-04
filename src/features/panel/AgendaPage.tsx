@@ -137,7 +137,16 @@ export function AgendaPage() {
       </SectionTitle>
 
       {panel === 'block' ? <BlockForm day={day} defaultStaff={barber === 'all' ? null : barber} onDone={() => setPanel('none')} /> : null}
-      {panel === 'book' ? <ManualBookingForm day={day} defaultStaff={barber === 'all' ? null : barber} onDone={() => setPanel('none')} /> : null}
+      {panel === 'book' ? (
+        <ManualBookingForm
+          day={day}
+          defaultStaff={barber === 'all' ? null : barber}
+          onDone={(bookedDay) => {
+            setPanel('none')
+            if (bookedDay) setDay(bookedDay)
+          }}
+        />
+      ) : null}
 
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <div className="flex items-center gap-1">
@@ -362,7 +371,7 @@ function BlockForm({ day, defaultStaff, onDone }: { day: string; defaultStaff: s
   )
 }
 
-function ManualBookingForm({ day, defaultStaff, onDone }: { day: string; defaultStaff: string | null; onDone: () => void }) {
+function ManualBookingForm({ day, defaultStaff, onDone }: { day: string; defaultStaff: string | null; onDone: (bookedDay?: string) => void }) {
   const { shop, role, staffId } = usePanel()
   const staff = useStaff()
   const services = useServices()
@@ -393,11 +402,11 @@ function ManualBookingForm({ day, defaultStaff, onDone }: { day: string; default
       })
       if (error) throw error
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['panel', shop.id] })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['panel', shop.id] })
       queryClient.invalidateQueries({ queryKey: ['available-slots'] })
       queryClient.invalidateQueries({ queryKey: ['available-days'] })
-      onDone()
+      onDone(date)
     },
   })
 
