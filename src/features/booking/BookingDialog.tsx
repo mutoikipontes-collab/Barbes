@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
-import { formatBRL } from '@/lib/format'
+import { formatBRL, whatsappLink } from '@/lib/format'
 import {
   addDays,
   addMonths,
@@ -388,6 +388,8 @@ function DetailsAndConfirm(props: {
   const [phoneError, setPhoneError] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [contact, setContact] = useState<string | null>(null)
+  const [bookedStaff, setBookedStaff] = useState<string | null>(null)
   const service = shop.services.find((s) => s.id === pending.serviceId)!
   const needsPhone = !profile.data?.phone
 
@@ -433,7 +435,7 @@ function DetailsAndConfirm(props: {
   async function confirm() {
     setSubmitError(null)
     setSubmitting(true)
-    const { error } = await supabase.rpc('customer_create_booking', {
+    const { data, error } = await supabase.rpc('customer_create_booking', {
       p_shop_id: shop.id,
       p_service_id: pending.serviceId,
       p_starts_at: pending.startsAt,
@@ -460,6 +462,9 @@ function DetailsAndConfirm(props: {
     }
     queryClient.invalidateQueries({ queryKey: ['my-appointments'] })
     queryClient.invalidateQueries({ queryKey: ['profile'] })
+    const booked = data as { contact_whatsapp?: string | null; staff?: { display_name?: string } } | null
+    setContact(booked?.contact_whatsapp ?? null)
+    setBookedStaff(booked?.staff?.display_name ?? staffName)
     onStep(7)
   }
 
@@ -562,7 +567,20 @@ function DetailsAndConfirm(props: {
       </p>
       {list}
       <div className="mt-8 grid gap-3 border-t border-ink-700 pt-4">
-        <Link to="/conta" className="btn-gold inline-flex min-h-12 items-center justify-center rounded-xs font-semibold">
+        {contact ? (
+          <a
+            href={whatsappLink(
+              contact,
+              `Olá${bookedStaff ? `, ${bookedStaff.split(' ')[0]}` : ''}! Sou ${profile.data?.full_name ?? 'cliente'} e acabei de agendar ${service.name} na ${shop.name} para ${formatDay(pending.date).toLowerCase()} às ${formatTime(pending.startsAt, shop.timezone)}.`,
+            )}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-gold inline-flex min-h-12 items-center justify-center rounded-xs font-semibold"
+          >
+            Falar com {bookedStaff ? bookedStaff.split(' ')[0] : 'a barbearia'} no WhatsApp
+          </a>
+        ) : null}
+        <Link to="/conta" className={`${contact ? 'border border-ink-700 hover:border-gold-500' : 'btn-gold'} inline-flex min-h-12 items-center justify-center rounded-xs font-semibold`}>
           Ver meus agendamentos
         </Link>
         <button type="button" onClick={onClose} className="inline-flex min-h-12 items-center justify-center rounded-xs border border-ink-700 font-semibold hover:border-gold-500">

@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
 import { WEEKDAYS_LONG } from '@/lib/time'
 import { Alert, Button, Field, Spinner } from '@/components/ui'
+import { toWhatsapp } from '@/lib/format'
 import type { Tables } from '@/types/database'
 import { Initials } from '@/features/booking/BookingDialog'
 import { usePanel } from './context'
@@ -101,6 +102,7 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
 
   const [name, setName] = useState(member?.display_name ?? '')
   const [bio, setBio] = useState(member?.bio ?? '')
+  const [whatsapp, setWhatsapp] = useState(member?.whatsapp ?? '')
   const [specialties, setSpecialties] = useState((member?.specialties ?? []).join(', '))
   const [bookable, setBookable] = useState(member?.bookable ?? true)
   const [active, setActive] = useState(member?.active ?? true)
@@ -122,6 +124,7 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
           .slice(0, 6),
         bookable,
         active,
+        whatsapp: whatsapp.trim() ? toWhatsapp(whatsapp) : null,
       }
       let id = member?.id
       if (id) {
@@ -179,6 +182,7 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
     e.preventDefault()
     setFormError(null)
     if (name.trim().length < 2) return setFormError('Informe o nome do barbeiro.')
+    if (whatsapp.trim() && !toWhatsapp(whatsapp)) return setFormError('WhatsApp inválido. Use o DDD, ex.: (99) 91234-5678.')
     const bad = days.findIndex((d) => d.on && d.end <= d.start)
     if (bad >= 0) return setFormError(`${WEEKDAYS_LONG[bad]}: o fim do expediente precisa ser depois do início.`)
     save.mutate()
@@ -193,6 +197,16 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
         {remove.isError ? <Alert tone="error">Não foi possível excluir: este barbeiro já tem atendimentos. Marque como inativo.</Alert> : null}
 
         <Field label="Nome que aparece para o cliente" name="st-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
+        <Field
+          label="WhatsApp do barbeiro"
+          name="st-wa"
+          type="tel"
+          inputMode="tel"
+          value={whatsapp}
+          onChange={(e) => setWhatsapp(e.target.value)}
+          placeholder="(99) 91234-5678"
+          hint="Depois de agendar, o cliente pode chamar este número para conversar. Não aparece na página pública."
+        />
         <Field label="Especialidades (separe por vírgula)" name="st-spec" value={specialties} onChange={(e) => setSpecialties(e.target.value)} placeholder="Degradê, navalha" />
         <TextArea label="Apresentação curta (opcional)" rows={2} maxLength={300} value={bio} onChange={(e) => setBio(e.target.value)} />
 

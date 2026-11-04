@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
-import { formatBRL } from '@/lib/format'
+import { formatBRL, whatsappLink } from '@/lib/format'
 import { dayOf, formatDay, formatTime } from '@/lib/time'
 import { useState } from 'react'
 import { Alert, Spinner } from '@/components/ui'
@@ -20,6 +20,7 @@ type MyAppointment = {
   staff_id: string
   can_cancel: boolean
   can_reschedule: boolean
+  contact_whatsapp: string | null
   shop: { id: string; name: string; slug: string; timezone: string; whatsapp: string | null }
 }
 
@@ -82,8 +83,18 @@ export function MyAppointments() {
                     {a.service} com {a.staff} · <Link to={`/${a.shop.slug}`} className="underline underline-offset-2">{a.shop.name}</Link> · {formatBRL(a.price_cents)}
                   </small>
                 </div>
-                {isUpcoming && (a.can_cancel || a.can_reschedule) ? (
-                  <div className="flex gap-4">
+                {isUpcoming && (a.can_cancel || a.can_reschedule || a.contact_whatsapp) ? (
+                  <div className="flex flex-wrap gap-4">
+                  {a.contact_whatsapp ? (
+                    <a
+                      href={whatsappLink(a.contact_whatsapp, `Olá, ${a.staff.split(' ')[0]}! Sobre meu horário de ${a.service} em ${formatDay(dayOf(a.starts_at, a.shop.timezone)).toLowerCase()} às ${formatTime(a.starts_at, a.shop.timezone)}.`)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex min-h-11 items-center text-gold-300 underline underline-offset-4"
+                    >
+                      WhatsApp
+                    </a>
+                  ) : null}
                   {a.can_reschedule ? (
                     <button type="button" onClick={() => setMoving(a)} className="min-h-11 text-gold-300 underline underline-offset-4">
                       Remarcar

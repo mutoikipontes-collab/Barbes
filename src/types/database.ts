@@ -209,6 +209,7 @@ export type Database = {
           user_id: string | null
           invite_token_hash: string | null
           invite_expires_at: string | null
+          whatsapp: string | null
         }
         Insert: {
           display_name: string
@@ -221,6 +222,7 @@ export type Database = {
           sort_order?: number
           specialties?: string[]
           user_id?: string | null
+          whatsapp?: string | null
         }
         Update: {
           display_name?: string
@@ -231,6 +233,7 @@ export type Database = {
           role?: ShopRole
           sort_order?: number
           specialties?: string[]
+          whatsapp?: string | null
         }
         Relationships: []
       }
