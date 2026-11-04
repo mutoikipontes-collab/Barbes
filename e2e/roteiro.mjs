@@ -97,8 +97,8 @@ try {
   await step('configuracoes-endereco', async () => {
     await page.getByRole('link', { name: 'Configurações' }).click()
     await page.getByLabel('Endereço (rua, número, bairro)').fill('Avenida Paulista, 1000, Bela Vista')
-    await page.getByLabel('Cidade').fill('São Paulo')
-    await page.getByLabel('UF').fill('SP')
+    await page.getByLabel('Cidade', { exact: true }).fill('São Paulo')
+    await page.getByLabel('UF', { exact: true }).fill('SP')
     await page.getByRole('button', { name: 'Salvar dados' }).click()
     await page.getByText('Alterações salvas').waitFor({ timeout: 15000 })
   })
