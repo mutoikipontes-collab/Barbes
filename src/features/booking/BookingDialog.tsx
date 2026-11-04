@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Link, useLocation } from 'react-router'
+import { Link } from 'react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
@@ -21,6 +21,7 @@ import { useProfile } from '@/features/auth/queries'
 import { Spinner } from '@/components/ui'
 import { LocationCard } from '@/components/LocationCard'
 import { formatLimit } from '@/lib/location'
+import { guestBookingLink, saveGuestBooking } from '@/lib/guestBookings'
 import type { PendingBooking, PublicShop } from './types'
 
 const TITLES = [
@@ -387,26 +388,30 @@ function DetailsAndConfirm(props: {
 }) {
   const { shop, step, pending, staffName, onStep, onSlotTaken, onClose } = props
   const { session } = useAuth()
-  const location = useLocation()
   const profile = useProfile()
   const queryClient = useQueryClient()
+  // se a pessoa já tem conta neste aparelho, os campos vêm preenchidos
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
-  const [phoneError, setPhoneError] = useState<string | null>(null)
+  const [filled, setFilled] = useState(false)
+  const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string }>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [contact, setContact] = useState<string | null>(null)
   const [bookedStaff, setBookedStaff] = useState<string | null>(null)
+  const [manageLink, setManageLink] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const service = shop.services.find((s) => s.id === pending.serviceId)!
-  const needsPhone = !profile.data?.phone
 
-  const rememberAndGo = () => {
-    try {
-      sessionStorage.setItem(pendingKey(shop.slug), JSON.stringify(pending))
-    } catch {
-      // sem armazenamento: o cliente só precisará escolher de novo
-    }
-  }
+  useEffect(() => {
+    if (filled || !session || !profile.data) return
+    setName(profile.data.full_name ?? '')
+    setEmail(session.user.email ?? '')
+    setPhone(profile.data.phone ? formatPhone(profile.data.phone.replace(/^\+?55/, '')) : '')
+    setFilled(true)
+  }, [filled, session, profile.data])
 
   const summary = useMemo(
     () => [
@@ -419,35 +424,28 @@ function DetailsAndConfirm(props: {
     [service, staffName, bookedStaff, pending, shop.timezone],
   )
 
-  if (!session) {
-    const state = { from: location.pathname }
-    return (
-      <div className="space-y-5">
-        <p className="text-ink-300">Para confirmar, entre na sua conta. Assim você acompanha e cancela seus horários quando quiser.</p>
-        <div className="grid gap-3">
-          <Link to="/entrar" state={state} onClick={rememberAndGo} className="btn-gold inline-flex min-h-12 items-center justify-center rounded-xs font-semibold">
-            Entrar
-          </Link>
-          <Link to="/cadastro" state={state} onClick={rememberAndGo} className="inline-flex min-h-12 items-center justify-center rounded-xs border border-ink-700 font-semibold hover:border-gold-500">
-            Criar conta
-          </Link>
-        </div>
-        <p className="text-sm text-ink-500">Seu horário fica guardado enquanto você entra.</p>
-      </div>
-    )
+  function validate(): boolean {
+    const e: typeof errors = {}
+    const n = name.trim().replace(/\s+/g, ' ')
+    if (n.length < 2 || n.length > 80) e.name = 'Informe seu nome.'
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) e.email = 'Informe um e-mail válido.'
+    const digits = phone.replace(/\D/g, '')
+    if (digits.length < 10 || digits.length > 11) e.phone = 'Informe um celular com DDD.'
+    setErrors(e)
+    return Object.keys(e).length === 0
   }
-
-  if (profile.isLoading) return <Spinner />
 
   async function confirm() {
     setSubmitError(null)
     setSubmitting(true)
-    const { data, error } = await supabase.rpc('customer_create_booking', {
+    const { data, error } = await supabase.rpc('create_booking', {
       p_shop_id: shop.id,
       p_service_id: pending.serviceId,
       p_starts_at: pending.startsAt,
+      p_customer_name: name.trim().replace(/\s+/g, ' '),
+      p_customer_phone: phone,
+      p_customer_email: email.trim(),
       p_staff_id: pending.staffId ?? undefined,
-      p_phone: needsPhone ? phone : undefined,
       p_notes: notes.trim() || undefined,
     })
     setSubmitting(false)
@@ -456,8 +454,9 @@ function DetailsAndConfirm(props: {
     if (error) {
       const msg = friendlyError(error)
       if (error.message === 'slot_unavailable') return onSlotTaken(msg)
-      if (error.message === 'invalid_phone') {
-        setPhoneError(msg)
+      if (error.message === 'invalid_phone' || error.message === 'invalid_email' || error.message === 'invalid_name') {
+        const field = error.message === 'invalid_phone' ? 'phone' : error.message === 'invalid_email' ? 'email' : 'name'
+        setErrors({ [field]: msg })
         return onStep(5)
       }
       return setSubmitError(msg)
@@ -467,11 +466,16 @@ function DetailsAndConfirm(props: {
     } catch {
       // nada a limpar
     }
-    queryClient.invalidateQueries({ queryKey: ['my-appointments'] })
-    queryClient.invalidateQueries({ queryKey: ['profile'] })
-    const booked = data as { contact_whatsapp?: string | null; staff?: { display_name?: string } } | null
-    setContact(booked?.contact_whatsapp ?? null)
-    setBookedStaff(booked?.staff?.display_name ?? staffName)
+    const res = data as {
+      manage_token: string
+      appointment: { id: string; contact_whatsapp?: string | null; staff?: { display_name?: string } }
+    }
+    const saved = { id: res.appointment.id, token: res.manage_token }
+    saveGuestBooking(saved)
+    setManageLink(guestBookingLink(saved))
+    queryClient.invalidateQueries({ queryKey: ['guest-appointments'] })
+    setContact(res.appointment.contact_whatsapp ?? null)
+    setBookedStaff(res.appointment.staff?.display_name ?? staffName)
     onStep(7)
   }
 
@@ -490,31 +494,25 @@ function DetailsAndConfirm(props: {
     </div>
   )
 
+  const input = 'min-h-12 w-full rounded-xs border border-ink-700 bg-ink-950 px-4 text-base focus:border-gold-500 focus:outline-none'
+
   if (step === 5) {
     return (
       <div>
-        {needsPhone ? (
-          <>
-            <label htmlFor="bk-phone" className="mb-1.5 block text-sm font-medium">Celular com DDD</label>
-            <input
-              id="bk-phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel-national"
-              placeholder="(99) 91234-5678"
-              value={phone}
-              onChange={(e) => setPhone(formatPhone(e.target.value))}
-              aria-invalid={phoneError ? true : undefined}
-              className="min-h-12 w-full rounded-xs border border-ink-700 bg-ink-950 px-4 text-base focus:border-gold-500 focus:outline-none"
-            />
-            <p className="mt-1 min-h-5 text-sm text-danger" aria-live="polite">{phoneError}</p>
-          </>
-        ) : (
-          <p className="mb-4 text-ink-300">
-            Agendando como <b className="font-medium text-ink-100">{profile.data?.full_name}</b>.
-          </p>
-        )}
-        <label htmlFor="bk-notes" className="mt-3 mb-1.5 block text-sm font-medium">
+        <p className="mb-5 text-ink-300">Sem cadastro e sem senha. Usamos estes dados só para o seu agendamento.</p>
+        <label htmlFor="bk-name" className="mb-1.5 block text-sm font-medium">Nome</label>
+        <input id="bk-name" autoComplete="name" maxLength={80} value={name} onChange={(e) => setName(e.target.value)} aria-invalid={errors.name ? true : undefined} className={input} />
+        <p className="mt-1 min-h-5 text-sm text-danger" aria-live="polite">{errors.name}</p>
+
+        <label htmlFor="bk-email" className="mt-2 mb-1.5 block text-sm font-medium">E-mail</label>
+        <input id="bk-email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" maxLength={254} placeholder="voce@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={errors.email ? true : undefined} className={input} />
+        <p className="mt-1 min-h-5 text-sm text-danger" aria-live="polite">{errors.email}</p>
+
+        <label htmlFor="bk-phone" className="mt-2 mb-1.5 block text-sm font-medium">Celular com DDD</label>
+        <input id="bk-phone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder="(99) 91234-5678" value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} aria-invalid={errors.phone ? true : undefined} className={input} />
+        <p className="mt-1 min-h-5 text-sm text-danger" aria-live="polite">{errors.phone}</p>
+
+        <label htmlFor="bk-notes" className="mt-2 mb-1.5 block text-sm font-medium">
           Observações <span className="text-ink-300">(opcional)</span>
         </label>
         <textarea
@@ -526,12 +524,7 @@ function DetailsAndConfirm(props: {
           className="w-full rounded-xs border border-ink-700 bg-ink-950 px-4 py-3 text-base focus:border-gold-500 focus:outline-none"
         />
         {footer(4, 'Continuar', () => {
-          if (needsPhone) {
-            const digits = phone.replace(/\D/g, '')
-            if (digits.length < 10 || digits.length > 11) return setPhoneError('Informe um celular com DDD.')
-          }
-          setPhoneError(null)
-          onStep(6)
+          if (validate()) onStep(6)
         })}
       </div>
     )
@@ -545,6 +538,16 @@ function DetailsAndConfirm(props: {
           <dd>{v}</dd>
         </div>
       ))}
+      {step === 6 ? (
+        <>
+          <dt className="text-ink-300">Nome</dt>
+          <dd>{name.trim()}</dd>
+          <dt className="text-ink-300">E-mail</dt>
+          <dd className="break-all">{email.trim()}</dd>
+          <dt className="text-ink-300">Celular</dt>
+          <dd>{phone}</dd>
+        </>
+      ) : null}
       {notes.trim() && step === 6 ? (
         <>
           <dt className="text-ink-300">Observações</dt>
@@ -567,10 +570,11 @@ function DetailsAndConfirm(props: {
     )
   }
 
+  const first = name.trim().split(' ')[0]
   return (
     <div>
       <p className="mb-5 text-ink-300">
-        Seu horário está reservado, {profile.data?.full_name?.split(' ')[0]}. Você pode acompanhar e cancelar em “Minha conta”.
+        Seu horário está reservado{first ? `, ${first}` : ''}. Para não esquecer, toque em <b className="font-medium text-ink-100">Salvar na agenda</b> logo abaixo: o celular avisa 2 horas antes.
       </p>
       {list}
       <div className="mt-6 border-t border-ink-700 pt-5">
@@ -581,16 +585,35 @@ function DetailsAndConfirm(props: {
             title: `${service.name} · ${shop.name}`,
             startsAt: pending.startsAt,
             endsAt: new Date(new Date(pending.startsAt).getTime() + service.duration_min * 60_000).toISOString(),
-            details: `${service.name}${bookedStaff ? ` com ${bookedStaff}` : ''}. Agendado pelo BARBER OS.`,
+            details: `${service.name}${bookedStaff ? ` com ${bookedStaff}` : ''}.${manageLink ? ` Ver, remarcar ou cancelar: ${manageLink}` : ''}`,
           }}
         />
       </div>
+      {manageLink ? (
+        <div className="mt-6 border-t border-ink-700 pt-5">
+          <p className="text-sm text-ink-300">Este agendamento fica salvo em “Meus agendamentos” neste celular. Para abrir em outro aparelho, guarde este link:</p>
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(manageLink)
+                setCopied(true)
+              } catch {
+                window.prompt('Copie o link do seu agendamento:', manageLink)
+              }
+            }}
+            className="mt-3 inline-flex min-h-11 items-center text-gold-300 underline underline-offset-4"
+          >
+            {copied ? 'Link copiado' : 'Copiar link do agendamento'}
+          </button>
+        </div>
+      ) : null}
       <div className="mt-6 grid gap-3 border-t border-ink-700 pt-4">
         {contact ? (
           <a
             href={whatsappLink(
               contact,
-              `Olá${bookedStaff ? `, ${bookedStaff.split(' ')[0]}` : ''}! Sou ${profile.data?.full_name ?? 'cliente'} e acabei de agendar ${service.name} na ${shop.name} para ${formatDay(pending.date).toLowerCase()} às ${formatTime(pending.startsAt, shop.timezone)}.`,
+              `Olá${bookedStaff ? `, ${bookedStaff.split(' ')[0]}` : ''}! Sou ${name.trim() || 'cliente'} e acabei de agendar ${service.name} na ${shop.name} para ${formatDay(pending.date).toLowerCase()} às ${formatTime(pending.startsAt, shop.timezone)}.`,
             )}
             target="_blank"
             rel="noreferrer"
@@ -599,7 +622,7 @@ function DetailsAndConfirm(props: {
             Falar com {bookedStaff ? bookedStaff.split(' ')[0] : 'a barbearia'} no WhatsApp
           </a>
         ) : null}
-        <Link to="/conta" className={`${contact ? 'border border-ink-700 hover:border-gold-500' : 'btn-gold'} inline-flex min-h-12 items-center justify-center rounded-xs font-semibold`}>
+        <Link to="/meus-agendamentos" className={`${contact ? 'border border-ink-700 hover:border-gold-500' : 'btn-gold'} inline-flex min-h-12 items-center justify-center rounded-xs font-semibold`}>
           Ver meus agendamentos
         </Link>
         <button type="button" onClick={onClose} className="inline-flex min-h-12 items-center justify-center rounded-xs border border-ink-700 font-semibold hover:border-gold-500">

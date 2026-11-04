@@ -106,8 +106,8 @@ export function ShopPage() {
         <nav aria-label="Principal" className="flex items-center gap-4 text-[15px]">
           <a href="#servicos" className="hidden hover:text-gold-300 sm:inline">Serviços</a>
           <a href="#barbeiros" className="hidden hover:text-gold-300 sm:inline">Barbeiros</a>
-          <Link to={session ? '/conta' : '/entrar'} state={{ from: `/${s.slug}` }} className="whitespace-nowrap hover:text-gold-300">
-            {session ? 'Conta' : 'Entrar'}
+          <Link to="/meus-agendamentos" className="whitespace-nowrap hover:text-gold-300">
+            Meus horários
           </Link>
           {canBook ? (
             <button type="button" onClick={() => open()} className="btn-gold inline-flex min-h-[38px] items-center rounded-xs px-4 font-semibold whitespace-nowrap">

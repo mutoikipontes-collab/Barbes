@@ -302,6 +302,22 @@ export type Database = {
       create_staff_invite: { Args: { p_staff_id: string }; Returns: string }
       get_staff_invite: { Args: { p_token: string }; Returns: Json }
       accept_staff_invite: { Args: { p_token: string }; Returns: Json }
+      create_booking: {
+        Args: {
+          p_shop_id: string
+          p_service_id: string
+          p_starts_at: string
+          p_customer_name: string
+          p_customer_phone: string
+          p_staff_id?: string
+          p_customer_email?: string
+          p_notes?: string
+        }
+        Returns: Json
+      }
+      cancel_booking: { Args: { p_appointment_id: string; p_token: string; p_reason?: string }; Returns: Json }
+      reschedule_booking: { Args: { p_appointment_id: string; p_token: string; p_new_starts_at: string; p_new_staff_id?: string }; Returns: Json }
+      guest_appointments: { Args: { p_items: Json }; Returns: Json }
       customer_reschedule_booking: { Args: { p_appointment_id: string; p_new_starts_at: string }; Returns: Json }
       customer_cancel_booking: { Args: { p_appointment_id: string; p_reason?: string }; Returns: Json }
       customer_create_booking: {

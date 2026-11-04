@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { useAuth } from '@/features/auth/AuthProvider'
 import { SiteLink } from '@/lib/site'
 
 /** Menu do topo do site do cliente. */
 export function ClientMenu() {
-  const { session } = useAuth()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -43,8 +41,8 @@ export function ClientMenu() {
       </button>
       {open ? (
         <nav id="menu-cliente" aria-label="Menu" className="absolute right-0 z-20 mt-2 w-64 overflow-hidden rounded-xs border border-ink-700 bg-ink-900 py-1 shadow-xl">
-          <Link to={session ? '/conta' : '/entrar'} onClick={close} className={item}>
-            {session ? 'Meus agendamentos' : 'Entrar'}
+          <Link to="/meus-agendamentos" onClick={close} className={item}>
+            Meus agendamentos
           </Link>
           <div className="my-1 border-t border-ink-700" />
           <SiteLink site="business" to="/cadastro" onClick={close} className={`${item} font-semibold text-gold-300`}>

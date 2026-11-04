@@ -16,7 +16,7 @@ export type RescheduleTarget = {
   shop: { slug: string; timezone: string }
 }
 
-export function RescheduleDialog({ appt, onClose }: { appt: RescheduleTarget; onClose: () => void }) {
+export function RescheduleDialog({ appt, token, onClose }: { appt: RescheduleTarget; token?: string; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null)
   const queryClient = useQueryClient()
   const [month, setMonth] = useState(monthStart(todayIn(appt.shop.timezone)))
@@ -43,7 +43,9 @@ export function RescheduleDialog({ appt, onClose }: { appt: RescheduleTarget; on
     if (!startsAt) return
     setError(null)
     setSaving(true)
-    const { error } = await supabase.rpc('customer_reschedule_booking', { p_appointment_id: appt.id, p_new_starts_at: startsAt })
+    const { error } = token
+      ? await supabase.rpc('reschedule_booking', { p_appointment_id: appt.id, p_token: token, p_new_starts_at: startsAt })
+      : await supabase.rpc('customer_reschedule_booking', { p_appointment_id: appt.id, p_new_starts_at: startsAt })
     setSaving(false)
     queryClient.invalidateQueries({ queryKey: ['available-slots'] })
     queryClient.invalidateQueries({ queryKey: ['available-days'] })
@@ -53,6 +55,7 @@ export function RescheduleDialog({ appt, onClose }: { appt: RescheduleTarget; on
       return
     }
     queryClient.invalidateQueries({ queryKey: ['my-appointments'] })
+    queryClient.invalidateQueries({ queryKey: ['guest-appointments'] })
     setDone(true)
   }
 

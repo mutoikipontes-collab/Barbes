@@ -22,6 +22,7 @@ import { InvitePage } from '@/features/invite/InvitePage'
 import { PrivacyPage, TermsPage } from '@/features/legal/LegalPage'
 import { OwnerEntryPage } from '@/features/owner/OwnerEntryPage'
 import { SITE } from '@/lib/site'
+import { GuestAppointmentsPage } from '@/features/guest/GuestAppointmentsPage'
 
 // Páginas que existem nos dois sites
 const shared: RouteObject[] = [
@@ -42,6 +43,7 @@ const shared: RouteObject[] = [
 const clientRoutes: RouteObject[] = [
   { path: '/', element: <HomePage /> },
   ...shared,
+  { path: '/meus-agendamentos', element: <GuestAppointmentsPage /> },
   { element: <RequireAuth />, children: [{ path: '/conta', element: <AccountPage /> }] },
   // páginas da barbearia moram no outro site
   { path: '/para-barbearias', element: <ExternalRedirect site="business" /> },

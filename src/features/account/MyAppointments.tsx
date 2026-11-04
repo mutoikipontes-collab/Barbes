@@ -10,6 +10,7 @@ import { Alert, Spinner } from '@/components/ui'
 import { RescheduleDialog, type RescheduleTarget } from './RescheduleDialog'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { SiteLink } from '@/lib/site'
+import { loadGuestBookings } from '@/lib/guestBookings'
 
 type MyAppointment = {
   id: string
@@ -35,15 +36,24 @@ const STATUS: Record<MyAppointment['status'], string> = {
   no_show: 'Falta',
 }
 
-export function MyAppointments() {
+/** mode "account": agendamentos da conta. mode "device": agendamentos feitos sem conta neste aparelho. */
+export function MyAppointments({ mode = 'account', refresh = 0 }: { mode?: 'account' | 'device'; refresh?: number }) {
   const queryClient = useQueryClient()
   const [moving, setMoving] = useState<RescheduleTarget | null>(null)
   const [openPlace, setOpenPlace] = useState<string | null>(null)
   const { session } = useAuth()
+  const tokenOf = (id: string) => loadGuestBookings().find((b) => b.id === id)?.token
   const list = useQuery({
-    queryKey: ['my-appointments', session?.user.id],
-    enabled: !!session,
+    queryKey: mode === 'device' ? ['guest-appointments', refresh] : ['my-appointments', session?.user.id],
+    enabled: mode === 'device' || !!session,
     queryFn: async () => {
+      if (mode === 'device') {
+        const items = loadGuestBookings()
+        if (items.length === 0) return []
+        const { data, error } = await supabase.rpc('guest_appointments', { p_items: items })
+        if (error) throw error
+        return (data ?? []) as unknown as MyAppointment[]
+      }
       const { data, error } = await supabase.rpc('my_appointments')
       if (error) throw error
       return (data ?? []) as unknown as MyAppointment[]
@@ -51,10 +61,13 @@ export function MyAppointments() {
   })
   const cancel = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.rpc('customer_cancel_booking', { p_appointment_id: id })
+      const { error } =
+        mode === 'device'
+          ? await supabase.rpc('cancel_booking', { p_appointment_id: id, p_token: tokenOf(id) ?? '' })
+          : await supabase.rpc('customer_cancel_booking', { p_appointment_id: id })
       if (error) throw error
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-appointments'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [mode === 'device' ? 'guest-appointments' : 'my-appointments'] }),
   })
 
   const now = Date.now()
@@ -74,7 +87,9 @@ export function MyAppointments() {
       ) : list.isError ? (
         <div className="mt-4"><Alert tone="error">{friendlyError(list.error)}</Alert></div>
       ) : upcoming.length === 0 && past.length === 0 ? (
-        <p className="mt-4 text-ink-300">Você ainda não tem agendamentos. Abra a página de uma barbearia para marcar seu horário.</p>
+        <p className="mt-4 text-ink-300">
+          {mode === 'device' ? 'Nenhum agendamento feito neste celular ainda.' : 'Você ainda não tem agendamentos.'} Abra a página de uma barbearia para marcar seu horário.
+        </p>
       ) : (
         <ul className="mt-4 border-b border-ink-700">
           {[...upcoming, ...past].map((a) => {
@@ -148,7 +163,7 @@ export function MyAppointments() {
           })}
         </ul>
       )}
-      {moving ? <RescheduleDialog appt={moving} onClose={() => setMoving(null)} /> : null}
+      {moving ? <RescheduleDialog appt={moving} token={mode === 'device' ? tokenOf(moving.id) : undefined} onClose={() => setMoving(null)} /> : null}
     </section>
   )
 }
