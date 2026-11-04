@@ -1,7 +1,8 @@
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, type RouteObject } from 'react-router'
 import { RedirectIfAuthenticated, RequireAuth, RequirePlatformAdmin } from './guards'
 import { HomePage } from './HomePage'
 import { NotFoundPage } from './NotFoundPage'
+import { ExternalRedirect } from './ExternalRedirect'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { SignupPage } from '@/features/auth/SignupPage'
 import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage'
@@ -20,9 +21,10 @@ import { OwnerOnly } from '@/features/panel/OwnerOnly'
 import { InvitePage } from '@/features/invite/InvitePage'
 import { PrivacyPage, TermsPage } from '@/features/legal/LegalPage'
 import { OwnerEntryPage } from '@/features/owner/OwnerEntryPage'
+import { SITE } from '@/lib/site'
 
-export const router = createBrowserRouter([
-  { path: '/', element: <HomePage /> },
+// Páginas que existem nos dois sites
+const shared: RouteObject[] = [
   {
     element: <RedirectIfAuthenticated />,
     children: [
@@ -32,10 +34,30 @@ export const router = createBrowserRouter([
     ],
   },
   { path: '/redefinir-senha', element: <ResetPasswordPage /> },
-  { path: '/convite/:token', element: <InvitePage /> },
   { path: '/termos', element: <TermsPage /> },
   { path: '/privacidade', element: <PrivacyPage /> },
-  { path: '/para-barbearias', element: <OwnerEntryPage /> },
+]
+
+// Site do cliente: encontrar barbearia, agendar, meus agendamentos
+const clientRoutes: RouteObject[] = [
+  { path: '/', element: <HomePage /> },
+  ...shared,
+  { element: <RequireAuth />, children: [{ path: '/conta', element: <AccountPage /> }] },
+  // páginas da barbearia moram no outro site
+  { path: '/para-barbearias', element: <ExternalRedirect site="business" /> },
+  { path: '/painel/*', element: <ExternalRedirect site="business" /> },
+  { path: '/admin', element: <ExternalRedirect site="business" /> },
+  { path: '/convite/*', element: <ExternalRedirect site="business" /> },
+  // página pública de cada barbearia: <endereço do site>/<barbearia>
+  { path: '/:slug', element: <ShopPage /> },
+  { path: '*', element: <NotFoundPage /> },
+]
+
+// Site da barbearia: entrar, painel, administração, convites
+const businessRoutes: RouteObject[] = [
+  { path: '/', element: <OwnerEntryPage /> },
+  ...shared,
+  { path: '/convite/:token', element: <InvitePage /> },
   {
     element: <RequireAuth />,
     children: [
@@ -60,7 +82,10 @@ export const router = createBrowserRouter([
       { element: <RequirePlatformAdmin />, children: [{ path: '/admin', element: <PlatformAdminPage /> }] },
     ],
   },
-  // Página pública de cada barbearia: barber-os/<endereço>. Rotas fixas acima têm prioridade.
-  { path: '/:slug', element: <ShopPage /> },
+  { path: '/para-barbearias', element: <OwnerEntryPage /> },
+  // página de barbearia aberta por engano aqui: leva para o site do cliente
+  { path: '/:slug', element: <ExternalRedirect site="client" /> },
   { path: '*', element: <NotFoundPage /> },
-])
+]
+
+export const router = createBrowserRouter(SITE === 'business' ? businessRoutes : clientRoutes)

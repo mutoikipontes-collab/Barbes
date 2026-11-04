@@ -6,6 +6,7 @@ import { friendlyError } from '@/lib/errors'
 import { formatBRL } from '@/lib/format'
 import { Alert, Spinner, Wordmark } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { SiteLink } from '@/lib/site'
 
 type PublicShopCard = {
   slug: string
@@ -20,7 +21,7 @@ type PublicShopCard = {
   barbers: number
 }
 
-/** Site do cliente: encontrar uma barbearia e agendar. A área do dono fica em /para-barbearias. */
+/** Site do cliente: encontrar uma barbearia e agendar. A área do dono é o outro site (site da barbearia). */
 export function HomePage() {
   const { session } = useAuth()
   const [params, setParams] = useSearchParams()
@@ -111,7 +112,7 @@ export function HomePage() {
           <Link to="/termos" className="underline underline-offset-4">Termos de Uso</Link> ·{' '}
           <Link to="/privacidade" className="underline underline-offset-4">Privacidade</Link>
         </span>
-        <Link to="/para-barbearias" className="text-gold-300 underline underline-offset-4">É dono de barbearia? Área da barbearia</Link>
+        <SiteLink site="business" to="/" className="text-gold-300 underline underline-offset-4">É dono de barbearia? Site da barbearia</SiteLink>
       </footer>
     </>
   )

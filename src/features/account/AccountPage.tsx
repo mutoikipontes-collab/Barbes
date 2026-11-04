@@ -8,6 +8,7 @@ import { Alert, Button, Field, Spinner, Wordmark } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useIsPlatformAdmin, useMyShops, useProfile } from '@/features/auth/queries'
 import { MyAppointments } from './MyAppointments'
+import { SITE, SiteLink } from '@/lib/site'
 
 const STATUS_LABEL: Record<string, string> = {
   trialing: 'Em teste',
@@ -23,7 +24,6 @@ export function AccountPage() {
   const notice = (location.state as { notice?: string } | null)?.notice
   const profile = useProfile()
   const shops = useMyShops()
-  const isAdmin = useIsPlatformAdmin()
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8">
@@ -41,14 +41,38 @@ export function AccountPage() {
 
       {notice ? <div className="mt-6"><Alert tone="success">{notice}</Alert></div> : null}
 
+      {SITE === 'client' ? (
+        <>
+          <MyAppointments />
+          <Link to="/" className="mt-4 inline-flex min-h-11 items-center text-sm text-gold-300 underline underline-offset-4">Encontrar uma barbearia para agendar</Link>
+          <ProfileForm />
+          <section className="mt-12 rounded-xs border border-ink-700 p-4">
+            <p className="text-ink-300">
+              {shops.data && shops.data.length > 0 ? 'Sua agenda e o painel da barbearia ficam no site da barbearia.' : 'Tem uma barbearia? Cadastre no site da barbearia e receba agendamentos online.'}
+            </p>
+            <SiteLink site="business" to="/" className="mt-3 inline-flex min-h-11 items-center font-semibold text-gold-300 underline underline-offset-4">
+              Ir para o site da barbearia
+            </SiteLink>
+          </section>
+        </>
+      ) : (
+        <BusinessAccount />
+      )}
+    </main>
+  )
+}
+
+/** Site da barbearia: barbearias, cadastro de barbearia, administração e perfil. */
+function BusinessAccount() {
+  const shops = useMyShops()
+  const isAdmin = useIsPlatformAdmin()
+  return (
+    <>
       {isAdmin.data ? (
         <Link to="/admin" className="mt-6 block rounded-xs border border-gold-500/40 px-4 py-3 text-gold-300">
           Administração do BARBER OS
         </Link>
       ) : null}
-
-      <MyAppointments />
-      <Link to="/" className="mt-4 inline-flex min-h-11 items-center text-sm text-gold-300 underline underline-offset-4">Encontrar uma barbearia para agendar</Link>
 
       {shops.isError ? (
         <div className="mt-6"><Alert tone="error">{friendlyError(shops.error)}</Alert></div>
@@ -61,7 +85,7 @@ export function AccountPage() {
             {shops.data.map((s) => (
               <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-4">
                 <div>
-                  <Link to={`/${s.slug}`} className="font-semibold hover:text-gold-300">{s.name}</Link>
+                  <SiteLink site="client" to={`/${s.slug}`} className="font-semibold hover:text-gold-300">{s.name}</SiteLink>
                   <p className="text-sm text-ink-500">
                     /{s.slug} · {s.role === 'owner' ? 'Proprietário' : 'Barbeiro'}
                   </p>
@@ -84,15 +108,19 @@ export function AccountPage() {
 
       <ProfileForm />
 
-      {shops.isLoading ? <div className="mt-6"><Spinner /></div> : <CreateShopForm />}
-    </main>
+      {shops.isLoading ? <div className="mt-6"><Spinner /></div> : <CreateShopForm startOpen={(shops.data ?? []).length === 0} />}
+
+      <SiteLink site="client" to="/conta" className="mt-10 inline-flex min-h-11 items-center text-sm text-ink-300 underline underline-offset-4">
+        Meus agendamentos como cliente
+      </SiteLink>
+    </>
   )
 }
 
-function CreateShopForm() {
+function CreateShopForm({ startOpen = false }: { startOpen?: boolean }) {
   const queryClient = useQueryClient()
   const [params] = useSearchParams()
-  const [open, setOpen] = useState(params.get('nova-barbearia') === '1')
+  const [open, setOpen] = useState(startOpen || params.get('nova-barbearia') === '1')
   const sectionRef = useRef<HTMLElement>(null)
   // veio da Área da barbearia: rola direto até o formulário
   useEffect(() => {

@@ -11,6 +11,7 @@ import { useMyShops } from '@/features/auth/queries'
 import { BookingDialog, pendingKey, type BookingStart } from './BookingDialog'
 import { LocationCard } from '@/components/LocationCard'
 import type { PendingBooking, PublicShop } from './types'
+import { SiteLink } from '@/lib/site'
 
 export function ShopPage() {
   const { slug = '' } = useParams()
@@ -121,7 +122,7 @@ export function ShopPage() {
           <div className="mx-auto max-w-[68rem] px-5">
             <div className="rounded-xs border border-gold-500/50 bg-ink-900 px-4 py-3 text-sm">
               <b className="font-semibold text-gold-300">Só você vê este aviso.</b> Sua página ainda não recebe agendamentos. {missing}{' '}
-              <Link to={`/painel/${s.id}`} className="font-semibold text-gold-300 underline underline-offset-4">Abrir painel</Link>
+              <SiteLink site="business" to={`/painel/${s.id}`} className="font-semibold text-gold-300 underline underline-offset-4">Abrir painel</SiteLink>
             </div>
           </div>
         ) : null}
