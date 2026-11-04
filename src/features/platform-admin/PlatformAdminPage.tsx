@@ -171,7 +171,7 @@ export function PlatformAdminPage() {
   )
 }
 
-type Settings = { pix_key: string | null; pix_holder: string | null; support_whatsapp: string | null; trial_days: number; grace_days: number }
+type Settings = { pix_key: string | null; pix_holder: string | null; pix_code: string | null; support_whatsapp: string | null; trial_days: number; grace_days: number }
 
 function SettingsForm() {
   const queryClient = useQueryClient()
@@ -192,6 +192,7 @@ function SettingsFormInner({ initial, onSaved }: { initial: Settings; onSaved: (
   const [f, setF] = useState({
     pix_key: initial.pix_key ?? '',
     pix_holder: initial.pix_holder ?? '',
+    pix_code: initial.pix_code ?? '',
     support_whatsapp: initial.support_whatsapp ?? '',
     trial_days: String(initial.trial_days),
     grace_days: String(initial.grace_days),
@@ -211,6 +212,7 @@ function SettingsFormInner({ initial, onSaved }: { initial: Settings; onSaved: (
         p_support_whatsapp: wa,
         p_trial_days: Number(f.trial_days),
         p_grace_days: Number(f.grace_days),
+        p_pix_code: f.pix_code,
       })
       if (error) throw error
     },
@@ -237,6 +239,9 @@ function SettingsFormInner({ initial, onSaved }: { initial: Settings; onSaved: (
         </div>
         <Field label="Chave Pix" name="pix" value={f.pix_key} onChange={set('pix_key')} placeholder="CPF, celular, e-mail ou chave aleatória" />
         <Field label="Nome do titular do Pix" name="pixh" value={f.pix_holder} onChange={set('pix_holder')} />
+        <div className="md:col-span-2">
+          <Field label="Pix copia e cola (opcional, com valor da mensalidade)" name="pixc" value={f.pix_code} onChange={set('pix_code')} placeholder="00020126..." hint="Gere no app do banco: Pix → Cobrar → valor da mensalidade → copiar código." />
+        </div>
         <Field label="WhatsApp de suporte" name="wa" type="tel" inputMode="tel" value={f.support_whatsapp} onChange={set('support_whatsapp')} placeholder="(99) 91234-5678" />
         <div className="grid grid-cols-2 gap-3">
           <Field label="Dias de teste grátis" name="trial" type="number" inputMode="numeric" min={0} max={90} value={f.trial_days} onChange={set('trial_days')} hint="Vale para novas barbearias." />

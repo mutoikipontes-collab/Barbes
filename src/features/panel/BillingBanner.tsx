@@ -12,6 +12,7 @@ type Billing = {
   price_cents: number
   pix_key: string | null
   pix_holder: string | null
+  pix_code: string | null
   support_whatsapp: string | null
   grace_days: number
 }
@@ -21,7 +22,7 @@ const dateBR = (ymd: string) => ymd.split('-').reverse().join('/')
 /** Aviso de mensalidade, só para o dono: teste grátis, vencimento próximo ou vencido, com o Pix para pagar. */
 export function BillingBanner() {
   const { shop, role } = usePanel()
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState<'key' | 'code' | null>(null)
   const [open, setOpen] = useState(false)
   const billing = useQuery({
     queryKey: ['panel', shop.id, 'billing'],
@@ -73,6 +74,26 @@ export function BillingBanner() {
           <p className="text-ink-300">
             Plano {b.plan}: <b className="text-ink-100">{price}/mês</b>. Pague por Pix e envie o comprovante. A liberação é feita em seguida.
           </p>
+          {b.pix_code ? (
+            <div className="space-y-2">
+              <p className="text-ink-300">Pix copia e cola (o valor já vem preenchido):</p>
+              <p className="max-h-20 overflow-auto rounded-xs bg-ink-950 px-3 py-2 font-mono text-xs break-all select-all">{b.pix_code}</p>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(b.pix_code!)
+                    setCopied('code')
+                  } catch {
+                    setCopied(null)
+                  }
+                }}
+                className="btn-gold inline-flex min-h-11 w-full items-center justify-center rounded-xs px-4 font-semibold sm:w-auto"
+              >
+                {copied === 'code' ? 'Código copiado ✓ Cole no app do banco' : 'Copiar Pix copia e cola'}
+              </button>
+            </div>
+          ) : null}
           {b.pix_key ? (
             <div className="flex flex-wrap items-center gap-3">
               <span className="rounded-xs bg-ink-950 px-3 py-2 font-mono break-all select-all">{b.pix_key}</span>
@@ -81,14 +102,14 @@ export function BillingBanner() {
                 onClick={async () => {
                   try {
                     await navigator.clipboard.writeText(b.pix_key!)
-                    setCopied(true)
+                    setCopied('key')
                   } catch {
-                    setCopied(false)
+                    setCopied(null)
                   }
                 }}
-                className="btn-gold inline-flex min-h-10 items-center rounded-xs px-4 font-semibold"
+                className="inline-flex min-h-10 items-center rounded-xs border border-ink-700 px-4 font-semibold hover:border-gold-500"
               >
-                {copied ? 'Chave copiada ✓' : 'Copiar chave Pix'}
+                {copied === 'key' ? 'Chave copiada ✓' : 'Copiar chave Pix'}
               </button>
               {b.pix_holder ? <span className="text-ink-300">Titular: {b.pix_holder}</span> : null}
             </div>
