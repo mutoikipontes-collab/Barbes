@@ -83,7 +83,11 @@ function ServiceForm(props: {
   const [duration, setDuration] = useState(String(service?.duration_min ?? 30))
   const [price, setPrice] = useState(service ? (service.price_cents / 100).toFixed(2).replace('.', ',') : '')
   const [active, setActive] = useState(service?.active ?? true)
-  const [who, setWho] = useState<string[]>(linkedStaffIds)
+  // null = ainda não mexeu: usa a sugestão atual (todos que atendem, para serviço novo; os ligados, para editar).
+  // Assim a lista certa vale mesmo se os dados da equipe chegarem depois de abrir o formulário.
+  const [picked, setPicked] = useState<string[] | null>(null)
+  const who = picked ?? linkedStaffIds
+  const setWho = (fn: (w: string[]) => string[]) => setPicked((p) => fn(p ?? linkedStaffIds))
   const [formError, setFormError] = useState<string | null>(null)
 
   const refresh = () => {
@@ -111,8 +115,10 @@ function ServiceForm(props: {
         id = data.id
       }
       // Quem faz este serviço: remove os que saíram e adiciona os que entraram.
-      const removed = linkedStaffIds.filter((s) => !who.includes(s))
-      const added = who.filter((s) => !linkedStaffIds.includes(s))
+      // O que já está gravado: nada, se o serviço é novo (antes isto usava a sugestão e nada era gravado).
+      const before = service ? linkedStaffIds : []
+      const removed = before.filter((s) => !who.includes(s))
+      const added = who.filter((s) => !before.includes(s))
       if (removed.length) {
         const { error } = await supabase.from('staff_services').delete().eq('service_id', id).in('staff_id', removed)
         if (error) throw error
