@@ -9,6 +9,14 @@ import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage'
 import { AccountPage } from '@/features/account/AccountPage'
 import { PlatformAdminPage } from '@/features/platform-admin/PlatformAdminPage'
 import { ShopPage } from '@/features/booking/ShopPage'
+import { PanelLayout } from '@/features/panel/PanelLayout'
+import { PanelIndex } from '@/features/panel/PanelIndex'
+import { AgendaPage } from '@/features/panel/AgendaPage'
+import { ServicesPage } from '@/features/panel/ServicesPage'
+import { TeamPage } from '@/features/panel/TeamPage'
+import { CustomersPage } from '@/features/panel/CustomersPage'
+import { SettingsPage } from '@/features/panel/SettingsPage'
+import { OwnerOnly } from '@/features/panel/OwnerOnly'
 
 export const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
@@ -25,6 +33,23 @@ export const router = createBrowserRouter([
     element: <RequireAuth />,
     children: [
       { path: '/conta', element: <AccountPage /> },
+      {
+        path: '/painel/:shopId',
+        element: <PanelLayout />,
+        children: [
+          { index: true, element: <PanelIndex /> },
+          { path: 'agenda', element: <AgendaPage /> },
+          { path: 'clientes', element: <CustomersPage /> },
+          {
+            element: <OwnerOnly />,
+            children: [
+              { path: 'servicos', element: <ServicesPage /> },
+              { path: 'equipe', element: <TeamPage /> },
+              { path: 'configuracoes', element: <SettingsPage /> },
+            ],
+          },
+        ],
+      },
       { element: <RequirePlatformAdmin />, children: [{ path: '/admin', element: <PlatformAdminPage /> }] },
     ],
   },

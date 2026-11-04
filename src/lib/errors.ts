@@ -15,7 +15,8 @@ type MaybeError = { code?: string; message?: string; details?: string | null } |
 export function friendlyError(error: unknown): string {
   const e = error as MaybeError
   if (!e) return 'Algo deu errado. Tente novamente.'
-  if (e.code === 'P0001' && e.details) return e.details
+  if ((e.code === 'P0001' || e.code === '42501') && e.details) return e.details
+  if (e.code === '42501') return 'Você não tem permissão para esta ação.'
   if (e.code && AUTH_MESSAGES[e.code]) return AUTH_MESSAGES[e.code]
   if (e.message?.toLowerCase().includes('failed to fetch')) {
     return 'Sem conexão com o servidor. Verifique sua internet.'

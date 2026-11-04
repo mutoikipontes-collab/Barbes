@@ -67,9 +67,14 @@ export function AccountPage() {
                     /{s.slug} · {s.role === 'owner' ? 'Proprietário' : 'Barbeiro'}
                   </p>
                 </div>
-                <span className="text-sm text-gold-300">
-                  {STATUS_LABEL[s.subscription.status] ?? s.subscription.status} · {formatBRL(s.subscription.price_cents)}/mês
-                </span>
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-sm text-gold-300">
+                    {STATUS_LABEL[s.subscription.status] ?? s.subscription.status} · {formatBRL(s.subscription.price_cents)}/mês
+                  </span>
+                  <Link to={`/painel/${s.id}`} className="btn-gold inline-flex min-h-10 items-center rounded-xs px-4 text-sm font-semibold">
+                    Abrir painel
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>

@@ -70,3 +70,35 @@ export function formatClock(t: string): string {
 
 export const WEEKDAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 export const WEEKDAYS_LONG = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+
+/** Diferença (ms) entre o horário de parede no fuso e o UTC, num instante. */
+function tzOffsetMs(instant: number, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(new Date(instant))
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value)
+  const asUtc = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'))
+  return asUtc - instant
+}
+
+/** Converte data (AAAA-MM-DD) + hora (HH:MM) do fuso da barbearia em instante ISO (UTC). */
+export function zonedToIso(ymd: string, hhmm: string, timeZone: string): string {
+  const [y, m, d] = ymd.split('-').map(Number)
+  const [h, mi] = hhmm.split(':').map(Number)
+  const wall = Date.UTC(y, m - 1, d, h, mi)
+  let utc = wall - tzOffsetMs(wall, timeZone)
+  utc = wall - tzOffsetMs(utc, timeZone) // segunda passada corrige viradas de horário de verão
+  return new Date(utc).toISOString()
+}
+
+/** Início do dia seguinte, em ISO, para consultas "do dia X até o dia Y". */
+export function dayStartIso(ymd: string, timeZone: string): string {
+  return zonedToIso(ymd, '00:00', timeZone)
+}
