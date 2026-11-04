@@ -2,6 +2,16 @@ name: Teste de ponta a ponta
 
 on:
   workflow_dispatch:
+    inputs:
+      script:
+        description: Roteiro (roteiro.mjs ou extras.mjs)
+        default: roteiro.mjs
+      phase:
+        description: Fase (setup ou admin), só para extras.mjs
+        default: setup
+      stamp:
+        description: Identificador da conta de teste (para a fase admin)
+        default: ''
 
 permissions:
   contents: write
@@ -15,7 +25,10 @@ jobs:
         with:
           node-version: 22
       - run: npm install --no-save --no-audit --no-fund playwright@1 && npx playwright install --with-deps chromium
-      - run: node e2e/roteiro.mjs
+      - run: node e2e/${{ inputs.script }}
+        env:
+          PHASE: ${{ inputs.phase }}
+          STAMP: ${{ inputs.stamp }}
       - if: always()
         run: |
           cd shots
