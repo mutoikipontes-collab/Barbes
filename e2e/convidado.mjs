@@ -123,6 +123,13 @@ try {
   await step('cliente-abre-barbearia-sem-login', async () => {
     await page.getByRole('link', { name: new RegExp(`E2E ${stamp}`) }).click()
     await page.waitForURL(`**/${slug}`)
+    // "voltar" do celular fecha a janela e continua na barbearia
+    await page.getByRole('button', { name: 'Agendar horário' }).click()
+    await page.getByRole('heading', { name: 'Escolha o barbeiro' }).waitFor()
+    await page.goBack()
+    await page.getByRole('heading', { name: 'Escolha o barbeiro' }).waitFor({ state: 'detached', timeout: 5000 })
+    if (!page.url().endsWith(`/${slug}`)) throw new Error(`voltar saiu da barbearia: ${page.url()}`)
+    await page.getByRole('link', { name: /Barbearias em Açailândia/ }).waitFor()
     await page.getByRole('button', { name: 'Agendar horário' }).click()
     await page.getByRole('heading', { name: 'Escolha o barbeiro' }).waitFor()
     await page.getByRole('dialog').getByRole('button', { name: /Dono Teste/ }).click()
