@@ -96,7 +96,8 @@ export function ShopPage() {
     setBooking(start)
     if (!dialogInHistory) {
       pushed.current = true
-      navigate(`${location.pathname}${location.search}`, { state: { booking: true } })
+      // replace: false força uma entrada nova no histórico (mesmo endereço, por padrão, substituiria)
+      navigate(`${location.pathname}${location.search}`, { state: { booking: true }, replace: false })
     }
   }
   const closeBooking = () => {
