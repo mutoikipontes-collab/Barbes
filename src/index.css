@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+/* Tokens provisórios da identidade BARBER OS (refinados na Fase 3). */
+@theme {
+  --color-ink-950: #0b0b0c;
+  --color-ink-900: #111113;
+  --color-ink-800: #1a1a1d;
+  --color-ink-700: #26262a;
+  --color-ink-500: #5c5c63;
+  --color-ink-300: #a3a3aa;
+  --color-ink-100: #ececee;
+  --color-gold-500: #c8a45c;
+  --color-gold-400: #d6b878;
+  --color-gold-300: #e4cd9c;
+  --color-danger: #e5736b;
+  --color-success: #7fc79a;
+  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html { color-scheme: dark; }
+  body {
+    @apply bg-ink-950 text-ink-100 font-sans antialiased;
+    min-height: 100dvh;
+  }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-gold-400; }
+}
