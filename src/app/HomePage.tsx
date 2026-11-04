@@ -3,7 +3,6 @@ import { Link, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
-import { formatBRL } from '@/lib/format'
 import { fold } from '@/lib/fold'
 import { CIDADES_MA } from '@/data/cidadesMA'
 import { Alert, Spinner, Wordmark } from '@/components/ui'
@@ -309,12 +308,6 @@ function ShopCard({ shop }: { shop: PublicShopCard }) {
             {[place, `${shop.barbers} barbeiro${shop.barbers === 1 ? '' : 's'}`].filter(Boolean).join(' · ')}
           </p>
         </div>
-        {shop.min_price_cents !== null ? (
-          <p className="text-right text-xs whitespace-nowrap text-ink-300">
-            a partir de
-            <span className="block font-display text-base text-gold-300">{formatBRL(shop.min_price_cents)}</span>
-          </p>
-        ) : null}
       </div>
       <p className="border-t border-ink-700 px-4 py-3 text-sm font-semibold text-gold-300 group-hover:underline">Escolher esta barbearia →</p>
     </Link>
