@@ -1,0 +1,38 @@
+// Confere a barbearia de simulação no site (só leitura: não agenda nada).
+import { chromium } from 'playwright'
+import fs from 'node:fs'
+fs.mkdirSync('shots', { recursive: true })
+const log = []
+const b = await chromium.launch()
+const page = await b.newPage({ viewport: { width: 390, height: 844 }, locale: 'pt-BR', timezoneId: 'America/Sao_Paulo' })
+page.on('pageerror', (e) => log.push('ERRO: ' + e.message))
+try {
+  await page.goto('https://barbes-three.vercel.app/')
+  await page.getByLabel('Sua cidade').fill('Açai')
+  await page.getByRole('option', { name: /Açailândia.*1 barbearia/ }).click()
+  await page.getByText('Destaque').first().waitFor({ timeout: 15000 })
+  await page.screenshot({ path: 'shots/01-busca.png', fullPage: true })
+  log.push('OK busca Açailândia com selo Destaque')
+  await page.getByRole('link', { name: /Barbearia Simulação/ }).click()
+  await page.getByRole('button', { name: 'Agendar horário' }).click()
+  await page.getByRole('heading', { name: 'Escolha o barbeiro' }).waitFor()
+  for (const n of ['Carlos (teste)', 'Rafael (teste)', 'Bruno (teste)']) await page.getByRole('dialog').getByRole('button', { name: new RegExp(n.replace(/[()]/g, '\\$&')) }).waitFor()
+  await page.screenshot({ path: 'shots/02-barbeiros.png' })
+  log.push('OK 3 barbeiros')
+  await page.getByRole('dialog').getByRole('button', { name: /Carlos/ }).click()
+  await page.getByRole('heading', { name: 'Escolha o tipo de corte' }).waitFor()
+  await page.screenshot({ path: 'shots/03-cortes.png' })
+  const cortes = await page.getByRole('dialog').getByRole('button', { name: /R\$/ }).count()
+  log.push(`OK cortes do Carlos: ${cortes}`)
+  await page.getByRole('dialog').getByRole('button', { name: /Degradê/ }).click()
+  await page.waitForTimeout(1500)
+  await page.getByRole('dialog').locator('.grid-cols-7 button:not([disabled])').first().click()
+  await page.getByRole('dialog').getByRole('button', { name: /^\d{2}:\d{2}$/ }).first().waitFor({ timeout: 15000 })
+  await page.screenshot({ path: 'shots/04-horarios.png' })
+  log.push('OK horários aparecem (não agendou)')
+} catch (e) {
+  log.push('FALHOU: ' + String(e.message).split('\n')[0])
+  await page.screenshot({ path: 'shots/FALHA.png', fullPage: true })
+}
+fs.writeFileSync('shots/resultado-simulacao.txt', log.join('\n') + '\n')
+await b.close()
