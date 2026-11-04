@@ -236,8 +236,8 @@ export function ShopPage() {
 
       <footer className="mx-auto flex max-w-[68rem] flex-wrap items-center justify-between gap-2 border-t border-ink-700 px-5 pt-8 pb-10 text-sm text-ink-300">
         <span>© {new Date().getFullYear()} {s.name}</span>
-        <Link to="/" className="inline-flex items-center gap-2">
-          Agenda por <Wordmark className="text-[13px]" />
+        <Link to={`/?ref=${s.slug}`} className="inline-flex flex-wrap items-center gap-2">
+          <span>Tem uma barbearia? Tenha a sua página com</span> <Wordmark className="text-[13px]" />
         </Link>
       </footer>
 

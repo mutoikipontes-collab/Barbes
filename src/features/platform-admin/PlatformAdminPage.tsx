@@ -18,6 +18,8 @@ type AdminShop = {
   owner: { name: string; email: string | null } | null
   subscription: { status: SubStatus; plan: string; price_cents: number }
   counts: { staff: number; customers: number; appointments_30d: number }
+  referred_by: string | null
+  referrals: number
 }
 
 type Overview = {
@@ -111,6 +113,13 @@ export function PlatformAdminPage() {
                   {s.owner?.email ?? 'sem proprietário com login'} · {s.counts.staff} na equipe · {s.counts.customers} clientes ·{' '}
                   {s.counts.appointments_30d} agendamentos em 30 dias
                 </p>
+                {s.referred_by || s.referrals ? (
+                  <p className="text-sm text-gold-300">
+                    {s.referred_by ? `Indicada por ${s.referred_by}` : ''}
+                    {s.referred_by && s.referrals ? ' · ' : ''}
+                    {s.referrals ? `Indicou ${s.referrals} barbearia${s.referrals > 1 ? 's' : ''}` : ''}
+                  </p>
+                ) : null}
               </div>
               <label className="flex items-center gap-2 text-sm">
                 <span className="sr-only">Situação da assinatura de {s.name}</span>

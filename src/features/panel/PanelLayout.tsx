@@ -12,6 +12,7 @@ const TABS = [
   { to: 'servicos', label: 'Serviços', end: false, ownerOnly: true },
   { to: 'equipe', label: 'Equipe', end: false, ownerOnly: true },
   { to: 'clientes', label: 'Clientes', end: false, ownerOnly: false },
+  { to: 'divulgar', label: 'Divulgar', end: false, ownerOnly: false },
   { to: 'configuracoes', label: 'Configurações', end: false, ownerOnly: true },
 ]
 
