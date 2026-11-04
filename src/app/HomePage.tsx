@@ -5,8 +5,8 @@ import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
 import { formatBRL } from '@/lib/format'
 import { Alert, Spinner, Wordmark } from '@/components/ui'
-import { useAuth } from '@/features/auth/AuthProvider'
 import { SiteLink } from '@/lib/site'
+import { ClientMenu } from './ClientMenu'
 
 type PublicShopCard = {
   slug: string
@@ -23,7 +23,6 @@ type PublicShopCard = {
 
 /** Site do cliente: encontrar uma barbearia e agendar. A área do dono é o outro site (site da barbearia). */
 export function HomePage() {
-  const { session } = useAuth()
   const [params, setParams] = useSearchParams()
   const [text, setText] = useState(params.get('q') ?? '')
   const [query, setQuery] = useState(params.get('q') ?? '')
@@ -51,9 +50,7 @@ export function HomePage() {
     <>
       <header className="mx-auto flex max-w-[68rem] items-center justify-between gap-4 px-5 py-5">
         <Wordmark />
-        <Link to={session ? '/conta' : '/entrar'} className="text-[15px] whitespace-nowrap hover:text-gold-300">
-          {session ? 'Meus agendamentos' : 'Entrar'}
-        </Link>
+        <ClientMenu />
       </header>
 
       <main className="mx-auto max-w-[68rem] px-5">

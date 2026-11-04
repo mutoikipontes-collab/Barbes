@@ -60,8 +60,12 @@ await step('barbearia-inicio', async () => {
   expect(href === `${CLIENT}/`, `link Sou cliente: ${href}`)
 })
 
-await step('barbearia-cadastro-conta', async () => {
+await step('menu-cliente-cadastrar-barbearia', async () => {
+  await page.goto(CLIENT)
+  await page.getByRole('button', { name: 'Menu' }).click()
+  await page.screenshot({ path: 'shots/04a-menu-aberto.png' })
   await page.getByRole('link', { name: 'Cadastrar minha barbearia' }).click()
+  await page.waitForURL(`${BUSINESS}/cadastro`, { timeout: 15000 })
   await page.getByLabel('Nome completo').fill('Teste Dois Sites')
   await page.getByLabel('E-mail').fill(email)
   await page.getByLabel('Senha').fill(password)
