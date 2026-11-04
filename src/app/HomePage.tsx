@@ -159,7 +159,10 @@ function CityPicker({ value, counts, onFocus, onChange }: { value: string; count
   const [active, setActive] = useState(0)
   const boxRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => setText(value), [value])
+  // cidade escolhida (ou vinda do link): mostra no campo. Ao limpar, não apaga o que a pessoa já começou a digitar.
+  useEffect(() => {
+    if (value) setText(value)
+  }, [value])
 
   const matches = useMemo(() => {
     const t = fold(text)
