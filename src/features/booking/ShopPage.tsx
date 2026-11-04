@@ -105,11 +105,11 @@ export function ShopPage() {
         <nav aria-label="Principal" className="flex items-center gap-4 text-[15px]">
           <a href="#servicos" className="hidden hover:text-gold-300 sm:inline">Serviços</a>
           <a href="#barbeiros" className="hidden hover:text-gold-300 sm:inline">Barbeiros</a>
-          <Link to={session ? '/conta' : '/entrar'} state={{ from: `/${s.slug}` }} className="hover:text-gold-300">
-            {session ? 'Minha conta' : 'Entrar'}
+          <Link to={session ? '/conta' : '/entrar'} state={{ from: `/${s.slug}` }} className="whitespace-nowrap hover:text-gold-300">
+            {session ? 'Conta' : 'Entrar'}
           </Link>
           {canBook ? (
-            <button type="button" onClick={() => open()} className="btn-gold inline-flex min-h-[38px] items-center rounded-xs px-4 font-semibold">
+            <button type="button" onClick={() => open()} className="btn-gold inline-flex min-h-[38px] items-center rounded-xs px-4 font-semibold whitespace-nowrap">
               Agendar
             </button>
           ) : null}
@@ -302,9 +302,11 @@ function NextFree({ shop }: { shop: PublicShop }) {
   })
   if (next.isError || next.data === null) return null
   return (
-    <p className="mt-8 flex items-center gap-2.5 text-[15px] text-ink-300">
-      <span aria-hidden="true" className="size-[7px] flex-none rounded-full bg-gold-500 shadow-[0_0_0_4px_rgba(200,160,74,0.18)]" />
-      Próximo horário livre:&nbsp;<span className="text-ink-100">{next.data ?? '…'}</span>
+    <p className="mt-8 flex items-start gap-2.5 text-[15px] text-ink-300">
+      <span aria-hidden="true" className="mt-[0.45em] size-[7px] flex-none rounded-full bg-gold-500 shadow-[0_0_0_4px_rgba(200,160,74,0.18)]" />
+      <span>
+        Próximo horário livre: <span className="text-ink-100">{next.data ?? '…'}</span>
+      </span>
     </p>
   )
 }
