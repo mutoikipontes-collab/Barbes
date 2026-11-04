@@ -1,78 +1,70 @@
 import { createBrowserRouter } from 'react-router'
+import { FullPageLoading } from '@/components/ui'
 import { RedirectIfAuthenticated, RequireAuth, RequirePlatformAdmin } from './guards'
 import { HomePage } from './HomePage'
 import { NotFoundPage } from './NotFoundPage'
-import { LoginPage } from '@/features/auth/LoginPage'
-import { SignupPage } from '@/features/auth/SignupPage'
-import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage'
-import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage'
-import { AccountPage } from '@/features/account/AccountPage'
-import { PlatformAdminPage } from '@/features/platform-admin/PlatformAdminPage'
 import { ShopPage } from '@/features/booking/ShopPage'
-import { PanelLayout } from '@/features/panel/PanelLayout'
-import { PanelIndex } from '@/features/panel/PanelIndex'
-import { AgendaPage } from '@/features/panel/AgendaPage'
-import { ServicesPage } from '@/features/panel/ServicesPage'
-import { TeamPage } from '@/features/panel/TeamPage'
-import { CustomersPage } from '@/features/panel/CustomersPage'
-import { SettingsPage } from '@/features/panel/SettingsPage'
 import { OwnerOnly } from '@/features/panel/OwnerOnly'
-import { InvitePage } from '@/features/invite/InvitePage'
-import { PrivacyPage, TermsPage } from '@/features/legal/LegalPage'
-import { OwnerEntryPage } from '@/features/owner/OwnerEntryPage'
-import { GuestAppointmentsPage } from '@/features/guest/GuestAppointmentsPage'
-import { AboutPage } from '@/features/about/AboutPage'
-import { PlansPage } from '@/features/plans/PlansPage'
-import { PlanPage } from '@/features/panel/PlanPage'
 
 // Um site só. A página inicial é do cliente (encontrar barbearia e agendar, sem conta).
 // A parte da barbearia (cadastro, painel) fica em páginas próprias, abertas pelo menu.
+//
+// Início e página da barbearia vêm no primeiro carregamento (é o que o cliente usa).
+// O resto (painel, administração, entrar, páginas de texto) só é baixado quando a pessoa abre.
 export const router = createBrowserRouter([
-  // cliente
-  { path: '/', element: <HomePage /> },
-  { path: '/meus-agendamentos', element: <GuestAppointmentsPage /> },
-  { path: '/sobre', element: <AboutPage /> },
-  { path: '/planos', element: <PlansPage /> },
-  // barbearia
-  { path: '/para-barbearias', element: <OwnerEntryPage /> },
   {
-    element: <RedirectIfAuthenticated />,
+    HydrateFallback: FullPageLoading,
     children: [
-      { path: '/entrar', element: <LoginPage /> },
-      { path: '/cadastro', element: <SignupPage /> },
-      { path: '/recuperar-senha', element: <ForgotPasswordPage /> },
-    ],
-  },
-  { path: '/redefinir-senha', element: <ResetPasswordPage /> },
-  { path: '/convite/:token', element: <InvitePage /> },
-  { path: '/termos', element: <TermsPage /> },
-  { path: '/privacidade', element: <PrivacyPage /> },
-  {
-    element: <RequireAuth />,
-    children: [
-      { path: '/conta', element: <AccountPage /> },
+      // cliente
+      { path: '/', element: <HomePage /> },
+      { path: '/meus-agendamentos', lazy: () => import('@/features/guest/GuestAppointmentsPage').then((m) => ({ Component: m.GuestAppointmentsPage })) },
+      { path: '/sobre', lazy: () => import('@/features/about/AboutPage').then((m) => ({ Component: m.AboutPage })) },
+      { path: '/planos', lazy: () => import('@/features/plans/PlansPage').then((m) => ({ Component: m.PlansPage })) },
+      // barbearia
+      { path: '/para-barbearias', lazy: () => import('@/features/owner/OwnerEntryPage').then((m) => ({ Component: m.OwnerEntryPage })) },
       {
-        path: '/painel/:shopId',
-        element: <PanelLayout />,
+        element: <RedirectIfAuthenticated />,
         children: [
-          { index: true, element: <PanelIndex /> },
-          { path: 'agenda', element: <AgendaPage /> },
-          { path: 'clientes', element: <CustomersPage /> },
+          { path: '/entrar', lazy: () => import('@/features/auth/LoginPage').then((m) => ({ Component: m.LoginPage })) },
+          { path: '/cadastro', lazy: () => import('@/features/auth/SignupPage').then((m) => ({ Component: m.SignupPage })) },
+          { path: '/recuperar-senha', lazy: () => import('@/features/auth/ForgotPasswordPage').then((m) => ({ Component: m.ForgotPasswordPage })) },
+        ],
+      },
+      { path: '/redefinir-senha', lazy: () => import('@/features/auth/ResetPasswordPage').then((m) => ({ Component: m.ResetPasswordPage })) },
+      { path: '/convite/:token', lazy: () => import('@/features/invite/InvitePage').then((m) => ({ Component: m.InvitePage })) },
+      { path: '/termos', lazy: () => import('@/features/legal/LegalPage').then((m) => ({ Component: m.TermsPage })) },
+      { path: '/privacidade', lazy: () => import('@/features/legal/LegalPage').then((m) => ({ Component: m.PrivacyPage })) },
+      {
+        element: <RequireAuth />,
+        children: [
+          { path: '/conta', lazy: () => import('@/features/account/AccountPage').then((m) => ({ Component: m.AccountPage })) },
           {
-            element: <OwnerOnly />,
+            path: '/painel/:shopId',
+            lazy: () => import('@/features/panel/PanelLayout').then((m) => ({ Component: m.PanelLayout })),
             children: [
-              { path: 'servicos', element: <ServicesPage /> },
-              { path: 'equipe', element: <TeamPage /> },
-              { path: 'configuracoes', element: <SettingsPage /> },
-              { path: 'plano', element: <PlanPage /> },
+              { index: true, lazy: () => import('@/features/panel/PanelIndex').then((m) => ({ Component: m.PanelIndex })) },
+              { path: 'agenda', lazy: () => import('@/features/panel/AgendaPage').then((m) => ({ Component: m.AgendaPage })) },
+              { path: 'clientes', lazy: () => import('@/features/panel/CustomersPage').then((m) => ({ Component: m.CustomersPage })) },
+              {
+                element: <OwnerOnly />,
+                children: [
+                  { path: 'servicos', lazy: () => import('@/features/panel/ServicesPage').then((m) => ({ Component: m.ServicesPage })) },
+                  { path: 'equipe', lazy: () => import('@/features/panel/TeamPage').then((m) => ({ Component: m.TeamPage })) },
+                  { path: 'configuracoes', lazy: () => import('@/features/panel/SettingsPage').then((m) => ({ Component: m.SettingsPage })) },
+                  { path: 'plano', lazy: () => import('@/features/panel/PlanPage').then((m) => ({ Component: m.PlanPage })) },
+                ],
+              },
             ],
+          },
+          {
+            element: <RequirePlatformAdmin />,
+            children: [{ path: '/admin', lazy: () => import('@/features/platform-admin/PlatformAdminPage').then((m) => ({ Component: m.PlatformAdminPage })) }],
           },
         ],
       },
-      { element: <RequirePlatformAdmin />, children: [{ path: '/admin', element: <PlatformAdminPage /> }] },
+      // página pública de cada barbearia
+      { path: '/:slug', element: <ShopPage /> },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
-  // página pública de cada barbearia
-  { path: '/:slug', element: <ShopPage /> },
-  { path: '*', element: <NotFoundPage /> },
 ])

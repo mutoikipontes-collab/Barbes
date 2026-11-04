@@ -1,21 +1,25 @@
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
 import { formatBRL } from '@/lib/format'
 import { addDays, formatClock, formatDay, formatTime, todayIn, WEEKDAYS_LONG } from '@/lib/time'
 import { Alert, FullPageLoading, Wordmark } from '@/components/ui'
-import { useAuth } from '@/features/auth/AuthProvider'
 import { useMyShops } from '@/features/auth/queries'
 import { BookingDialog, pendingKey, type BookingStart } from './BookingDialog'
 import { LocationCard } from '@/components/LocationCard'
-import type { PendingBooking, PublicShop } from './types'
+import type { PublicShop } from './types'
 
 export function ShopPage() {
   const { slug = '' } = useParams()
-  const { session } = useAuth()
   const [booking, setBooking] = useState<BookingStart | null>(null)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const dialogInHistory = (location.state as { booking?: boolean } | null)?.booking === true
+  // só voltamos no histórico se fomos nós que criamos a entrada (não depois de recarregar a página)
+  const pushed = useRef(false)
+  const seen = useRef(false)
   const myShops = useMyShops()
 
   const shop = useQuery({
@@ -27,24 +31,23 @@ export function ShopPage() {
     },
   })
 
-  // Voltou do login no meio de um agendamento: retoma de onde parou.
+  // A janela de agendamento entra no histórico: o "voltar" do celular fecha a janela
+  // em vez de sair da página da barbearia.
   useEffect(() => {
-    if (!session || !shop.data) return
-    try {
-      const saved = sessionStorage.getItem(pendingKey(shop.data.slug))
-      if (saved) {
-        sessionStorage.removeItem(pendingKey(shop.data.slug))
-        setBooking({ pending: JSON.parse(saved) as PendingBooking })
-      }
-    } catch {
-      // sem armazenamento: nada a retomar
+    if (!pushed.current) return
+    if (dialogInHistory) seen.current = true
+    else if (seen.current) {
+      // apertou "voltar": fecha a janela
+      pushed.current = false
+      seen.current = false
+      setBooking(null)
     }
-  }, [session, shop.data])
+  }, [dialogInHistory, booking])
 
   useEffect(() => {
     if (shop.data) document.title = `${shop.data.name} · Agende seu horário`
     return () => {
-      document.title = 'BARBER OS'
+      document.title = 'BARBER OS · Encontre a melhor barbearia da região'
     }
   }, [shop.data])
 
@@ -91,6 +94,18 @@ export function ShopPage() {
       // ignorar
     }
     setBooking(start)
+    if (!dialogInHistory) {
+      pushed.current = true
+      navigate(`${location.pathname}${location.search}`, { state: { booking: true } })
+    }
+  }
+  const closeBooking = () => {
+    if (pushed.current && dialogInHistory) navigate(-1)
+    else {
+      pushed.current = false
+      seen.current = false
+      setBooking(null)
+    }
   }
   const address = [s.address.line, [s.address.city, s.address.state].filter(Boolean).join(' – ')].filter(Boolean).join(', ')
   const whatsappUrl = s.whatsapp ? `https://wa.me/${s.whatsapp.replace(/\D/g, '')}` : null
@@ -117,6 +132,11 @@ export function ShopPage() {
       </header>
 
       <main>
+        <div className="mx-auto max-w-[68rem] px-5">
+          <Link to={s.address.city ? `/?cidade=${encodeURIComponent(s.address.city)}` : '/'} className="inline-flex min-h-10 items-center text-sm text-ink-300 hover:text-gold-300">
+            ← {s.address.city ? `Barbearias em ${s.address.city}` : 'Outras barbearias'}
+          </Link>
+        </div>
         {mine && missing ? (
           <div className="mx-auto max-w-[68rem] px-5">
             <div className="rounded-xs border border-gold-500/50 bg-ink-900 px-4 py-3 text-sm">
@@ -248,7 +268,7 @@ export function ShopPage() {
         </Link>
       </footer>
 
-      {booking ? <BookingDialog shop={s} start={booking} onClose={() => setBooking(null)} /> : null}
+      {booking ? <BookingDialog shop={s} start={booking} onClose={closeBooking} /> : null}
     </>
   )
 }
