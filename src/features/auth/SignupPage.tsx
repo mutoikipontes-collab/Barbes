@@ -11,6 +11,7 @@ export function SignupPage() {
   const from = (location.state as { from?: string } | null)?.from ?? '/conta'
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [accepted, setAccepted] = useState(false)
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -23,11 +24,12 @@ export function SignupPage() {
     if (fullName.length < 2 || fullName.length > 80) return setError('Informe seu nome (de 2 a 80 caracteres).')
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setError('Informe um e-mail válido.')
     if (password.length < 8) return setError('A senha precisa ter pelo menos 8 caracteres.')
+    if (!accepted) return setError('Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.')
 
     setLoading(true)
     // A conta é criada já confirmada por uma função no servidor (sem e-mail de confirmação).
     const { error: fnError } = await supabase.functions.invoke('signup', {
-      body: { full_name: fullName, email, password },
+      body: { full_name: fullName, email, password, terms_accepted_at: new Date().toISOString() },
     })
     if (fnError) {
       setLoading(false)
@@ -54,6 +56,14 @@ export function SignupPage() {
         <Field label="Nome completo" name="full_name" autoComplete="name" required maxLength={80} />
         <Field label="E-mail" name="email" type="email" autoComplete="email" inputMode="email" required />
         <Field label="Senha" name="password" type="password" autoComplete="new-password" required minLength={8} hint="Mínimo de 8 caracteres." />
+        <label className="flex items-start gap-3 text-sm text-ink-300">
+          <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} className="mt-0.5 size-5 flex-none accent-[#c8a04a]" />
+          <span>
+            Li e aceito os{' '}
+            <Link to="/termos" target="_blank" className="text-gold-300 underline underline-offset-2">Termos de Uso</Link> e a{' '}
+            <Link to="/privacidade" target="_blank" className="text-gold-300 underline underline-offset-2">Política de Privacidade</Link>.
+          </span>
+        </label>
         <Button type="submit" loading={loading}>Criar conta</Button>
       </form>
     </AuthLayout>

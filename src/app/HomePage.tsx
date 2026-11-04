@@ -25,6 +25,10 @@ export function HomePage() {
           </>
         )}
       </div>
+      <p className="mt-16 text-sm text-ink-500">
+        <Link to="/termos" className="underline underline-offset-4">Termos de Uso</Link> ·{' '}
+        <Link to="/privacidade" className="underline underline-offset-4">Privacidade</Link>
+      </p>
     </main>
   )
 }

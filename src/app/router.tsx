@@ -18,6 +18,7 @@ import { CustomersPage } from '@/features/panel/CustomersPage'
 import { SettingsPage } from '@/features/panel/SettingsPage'
 import { OwnerOnly } from '@/features/panel/OwnerOnly'
 import { InvitePage } from '@/features/invite/InvitePage'
+import { PrivacyPage, TermsPage } from '@/features/legal/LegalPage'
 
 export const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
@@ -31,6 +32,8 @@ export const router = createBrowserRouter([
   },
   { path: '/redefinir-senha', element: <ResetPasswordPage /> },
   { path: '/convite/:token', element: <InvitePage /> },
+  { path: '/termos', element: <TermsPage /> },
+  { path: '/privacidade', element: <PrivacyPage /> },
   {
     element: <RequireAuth />,
     children: [
