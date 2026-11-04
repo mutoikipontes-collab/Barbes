@@ -41,10 +41,9 @@ export function DashboardPage() {
   // Lista do que falta para abrir os agendamentos online.
   const bookableStaff = (staff.data ?? []).filter((s) => s.active && s.bookable)
   const checklist = [
-    { ok: (hours.data ?? []).length > 0, label: 'Horário de funcionamento', to: 'configuracoes' },
-    { ok: (services.data ?? []).some((s) => s.active), label: 'Pelo menos um serviço', to: 'servicos' },
-    { ok: bookableStaff.length > 0, label: 'Pelo menos um barbeiro que atende', to: 'equipe' },
-    { ok: (links.data ?? []).length > 0, label: 'Serviços ligados aos barbeiros', to: 'equipe' },
+    { ok: (services.data ?? []).some((s) => s.active), label: 'Cadastrar pelo menos um serviço', to: 'servicos' },
+    { ok: bookableStaff.length > 0, label: 'Ter um barbeiro que atende, com expediente', to: 'equipe' },
+    { ok: (links.data ?? []).length > 0, label: 'Ligar os serviços aos barbeiros', to: 'equipe' },
   ]
   const ready = checklist.every((c) => c.ok)
 
@@ -79,7 +78,7 @@ export function DashboardPage() {
       {!ready ? (
         <Card className="border-gold-500/50">
           <h2 className="mb-2 text-2xl">Abra seus agendamentos online</h2>
-          <p className="mb-3 text-ink-300">Falta pouco para sua página receber clientes:</p>
+          <p className="mb-3 text-ink-300">Falta pouco para sua página receber clientes. Faça nesta ordem:</p>
           <ul className="space-y-2">
             {checklist.map((c) => (
               <li key={c.label} className="flex items-center gap-3">
@@ -88,6 +87,11 @@ export function DashboardPage() {
               </li>
             ))}
           </ul>
+          <p className="mt-3 text-sm text-ink-300">
+            {(hours.data ?? []).length > 0
+              ? 'Horário de funcionamento cadastrado: os horários respeitam a abertura, o fechamento e o almoço.'
+              : 'Opcional: cadastre o horário de funcionamento em Configurações (com pausa de almoço). Sem ele, vale o expediente de cada barbeiro.'}
+          </p>
         </Card>
       ) : null}
 

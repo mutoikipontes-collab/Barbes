@@ -142,7 +142,7 @@ export function BookingDialog({ shop, start, onClose }: { shop: PublicShop; star
                 .map((b) => (
                   <Option key={b.id} pressed={st.staffId === b.id} onClick={() => go({ staffId: b.id, date: null, startsAt: null, step: 3 })}>
                     <span className="flex items-center gap-4">
-                      <Initials name={b.display_name} />
+                      <Initials name={b.display_name} photoUrl={b.photo_url} />
                       <span>
                         <b className="block font-medium">{b.display_name}</b>
                         {b.specialties.length > 0 ? <small className="text-ink-300">{b.specialties.join(', ')}</small> : null}
@@ -225,7 +225,10 @@ function Option({ pressed, onClick, children }: { pressed: boolean; onClick: () 
   )
 }
 
-export function Initials({ name }: { name: string }) {
+export function Initials({ name, photoUrl }: { name: string; photoUrl?: string | null }) {
+  if (photoUrl) {
+    return <img src={photoUrl} alt="" className="size-[52px] flex-none rounded-full border border-gold-500 object-cover" loading="lazy" />
+  }
   const ini = name
     .split(' ')
     .filter(Boolean)

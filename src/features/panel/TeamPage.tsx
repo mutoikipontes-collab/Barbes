@@ -11,6 +11,7 @@ import { usePanel } from './context'
 import { useServices, useShopHours, useStaff, useStaffHours, useStaffServices } from './queries'
 import { TimeInput } from './SettingsPage'
 import { InviteButton } from './InviteButton'
+import { PhotoPicker } from './PhotoPicker'
 import { Card, Empty, SectionTitle, SmallButton, TextArea, Toggle } from './ui'
 
 type Staff = Tables<'staff'>
@@ -58,7 +59,7 @@ export function TeamPage() {
             return (
               <li key={b.id} className={`flex flex-wrap items-center justify-between gap-3 border-t border-ink-700 py-4 ${b.active ? '' : 'opacity-50'}`}>
                 <div className="flex items-center gap-4">
-                  <Initials name={b.display_name} />
+                  <Initials name={b.display_name} photoUrl={b.photo_url} />
                   <div>
                     <b className="font-display text-lg font-medium">{b.display_name}</b>
                     <small className="block text-ink-300">
@@ -119,6 +120,7 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
   const [name, setName] = useState(member?.display_name ?? '')
   const [bio, setBio] = useState(member?.bio ?? '')
   const [whatsapp, setWhatsapp] = useState(member?.whatsapp ?? '')
+  const [photoUrl, setPhotoUrl] = useState<string | null>(member?.photo_url ?? null)
   const [specialties, setSpecialties] = useState<string[]>(member?.specialties ?? [])
   const [customSpecialty, setCustomSpecialty] = useState('')
   const [bookable, setBookable] = useState(member?.bookable ?? true)
@@ -138,6 +140,7 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
         bookable,
         active,
         whatsapp: whatsapp.trim() ? toWhatsapp(whatsapp) : null,
+        photo_url: photoUrl,
       }
       let id = member?.id
       if (id) {
@@ -209,6 +212,7 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
         {save.isError ? <Alert tone="error">{friendlyError(save.error)}</Alert> : null}
         {remove.isError ? <Alert tone="error">Não foi possível excluir: este barbeiro já tem atendimentos. Marque como inativo.</Alert> : null}
 
+        <PhotoPicker name={name || 'Barbeiro'} value={photoUrl} onChange={setPhotoUrl} />
         <Field label="Nome que aparece para o cliente" name="st-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
         <Field
           label="WhatsApp do barbeiro"
@@ -273,7 +277,9 @@ function StaffFormInner({ member, onDone }: { member: Staff | null; onDone: () =
             <fieldset>
               <legend className="mb-2 text-sm font-medium text-ink-300">Serviços que faz</legend>
               {(services.data ?? []).length === 0 ? (
-                <p className="text-sm text-ink-300">Nenhum serviço cadastrado. Cadastre na aba Serviços.</p>
+                <Alert tone="info">
+                  Nenhum serviço cadastrado ainda. Sem serviço, este barbeiro não aparece para agendar. Salve aqui e depois crie o serviço na aba <b>Serviços</b>: ele já vem marcado para os barbeiros que atendem.
+                </Alert>
               ) : (
                 (services.data ?? []).map((s) => (
                   <Toggle key={s.id} label={s.name} checked={svc.includes(s.id)} onChange={(v) => setSvc((all) => (v ? [...all, s.id] : all.filter((x) => x !== s.id)))} />

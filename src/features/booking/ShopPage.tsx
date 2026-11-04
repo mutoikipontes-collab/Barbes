@@ -7,6 +7,7 @@ import { formatBRL } from '@/lib/format'
 import { addDays, formatClock, formatDay, formatTime, todayIn, WEEKDAYS_LONG } from '@/lib/time'
 import { Alert, FullPageLoading, Wordmark } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { useMyShops } from '@/features/auth/queries'
 import { BookingDialog, pendingKey, type BookingStart } from './BookingDialog'
 import type { PendingBooking, PublicShop } from './types'
 
@@ -14,6 +15,7 @@ export function ShopPage() {
   const { slug = '' } = useParams()
   const { session } = useAuth()
   const [booking, setBooking] = useState<BookingStart | null>(null)
+  const myShops = useMyShops()
 
   const shop = useQuery({
     queryKey: ['public-shop', slug],
@@ -73,6 +75,14 @@ export function ShopPage() {
     services: raw.services.filter((sv) => staffList.some((b) => b.service_ids.includes(sv.id))),
   }
   const canBook = s.services.length > 0 && s.staff.length > 0
+  const mine = myShops.data?.find((m) => m.id === s.id && m.role === 'owner')
+  const missing = !canBook
+    ? raw.services.length === 0
+      ? 'Cadastre pelo menos um serviço (aba Serviços).'
+      : raw.staff.length === 0
+        ? 'Cadastre um barbeiro que atende (aba Equipe) com expediente.'
+        : 'Ligue os serviços aos barbeiros: em Equipe, abra o barbeiro e marque os serviços que ele faz.'
+    : null
   const open = (start: BookingStart = {}) => {
     try {
       sessionStorage.removeItem(pendingKey(s.slug))
@@ -104,6 +114,14 @@ export function ShopPage() {
       </header>
 
       <main>
+        {mine && missing ? (
+          <div className="mx-auto max-w-[68rem] px-5">
+            <div className="rounded-xs border border-gold-500/50 bg-ink-900 px-4 py-3 text-sm">
+              <b className="font-semibold text-gold-300">Só você vê este aviso.</b> Sua página ainda não recebe agendamentos. {missing}{' '}
+              <Link to={`/painel/${s.id}`} className="font-semibold text-gold-300 underline underline-offset-4">Abrir painel</Link>
+            </div>
+          </div>
+        ) : null}
         <section className="mx-auto grid max-w-[68rem] items-center gap-x-12 px-5 pt-[clamp(3rem,10vw,6.5rem)] pb-[clamp(2rem,6vw,4rem)] md:grid-cols-[1.15fr_.85fr]">
           <div>
             <div className="gold-line mb-8" />
@@ -162,15 +180,23 @@ export function ShopPage() {
                   onClick={() => open({ staffId: b.id, serviceId: b.service_ids.length === 1 ? b.service_ids[0] : undefined })}
                   className="group relative flex aspect-[3/4] flex-[0_0_72%] snap-start flex-col justify-end gap-1 overflow-hidden rounded-xs border border-ink-700 bg-[linear-gradient(165deg,#212227,#0b0b0d_72%)] p-5 text-left shadow-[inset_0_1px_0_rgba(230,207,147,0.12)] hover:border-gold-500 md:flex-none"
                 >
-                  <span
-                    aria-hidden="true"
-                    className="absolute -top-[0.12em] right-[0.04em] font-display text-[12rem] leading-none text-transparent [-webkit-text-stroke:1px_rgba(200,160,74,0.4)] group-hover:[-webkit-text-stroke-color:rgba(230,207,147,0.8)]"
-                  >
-                    {b.display_name[0]}
-                  </span>
+                  {b.photo_url ? (
+                    <>
+                      <img src={b.photo_url} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                      <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,transparent_35%,rgba(5,5,5,0.92))]" />
+                    </>
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      className="absolute -top-[0.12em] right-[0.04em] font-display text-[12rem] leading-none text-transparent [-webkit-text-stroke:1px_rgba(200,160,74,0.4)] group-hover:[-webkit-text-stroke-color:rgba(230,207,147,0.8)]"
+                    >
+                      {b.display_name[0]}
+                    </span>
+                  )}
                   <b className="relative font-display text-[1.5rem] font-medium">{b.display_name}</b>
-                  {b.specialties.length > 0 ? <small className="relative text-ink-300">{b.specialties.join(', ')}</small> : null}
+                  {b.specialties.length > 0 ? <small className="relative text-ink-100/80">{b.specialties.join(' · ')}</small> : null}
                   {b.bio ? <small className="relative line-clamp-2 text-ink-300">{b.bio}</small> : null}
+                  <span className="relative mt-2 text-sm font-semibold text-gold-300">Agendar com {b.display_name.split(' ')[0]} →</span>
                 </button>
               ))}
             </div>
