@@ -6,7 +6,6 @@ import { Alert } from '@/components/ui'
 import type { Tables } from '@/types/database'
 import { usePanel } from './context'
 import { SmallButton } from './ui'
-import { siteUrl } from '@/lib/site'
 
 /** Gera o link de convite para o barbeiro entrar no painel com a conta dele. */
 export function InviteButton({ member }: { member: Tables<'staff'> }) {
@@ -18,7 +17,7 @@ export function InviteButton({ member }: { member: Tables<'staff'> }) {
     mutationFn: async () => {
       const { data, error } = await supabase.rpc('create_staff_invite', { p_staff_id: member.id })
       if (error) throw error
-      return new URL(siteUrl('business', `/convite/${data}`), window.location.origin).href
+      return `${window.location.origin}/convite/${data}`
     },
     onSuccess: setLink,
   })

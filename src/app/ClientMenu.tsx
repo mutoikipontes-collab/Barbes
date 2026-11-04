@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { SiteLink } from '@/lib/site'
 
 /** Menu do topo do site do cliente. */
 export function ClientMenu() {
@@ -45,9 +44,12 @@ export function ClientMenu() {
             Meus agendamentos
           </Link>
           <div className="my-1 border-t border-ink-700" />
-          <SiteLink site="business" to="/cadastro" onClick={close} className={`${item} font-semibold text-gold-300`}>
+          <Link to="/cadastro" state={{ from: '/conta?nova-barbearia=1' }} onClick={close} className={`${item} font-semibold text-gold-300`}>
             Cadastrar minha barbearia
-          </SiteLink>
+          </Link>
+          <Link to="/para-barbearias" onClick={close} className={`${item} text-sm text-ink-300`}>
+            Já tenho barbearia: entrar
+          </Link>
         </nav>
       ) : null}
     </div>

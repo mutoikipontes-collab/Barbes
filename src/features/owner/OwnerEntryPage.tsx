@@ -2,9 +2,8 @@ import { Link } from 'react-router'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useMyShops } from '@/features/auth/queries'
 import { AuthLayout } from '@/features/auth/AuthLayout'
-import { SiteLink } from '@/lib/site'
 
-/** Página inicial do site da barbearia: entrada de donos e barbeiros. */
+/** Área da barbearia: entrada de donos e barbeiros. */
 export function OwnerEntryPage() {
   const { session } = useAuth()
   const shops = useMyShops()
@@ -14,7 +13,7 @@ export function OwnerEntryPage() {
     <AuthLayout
       title="Área da barbearia"
       subtitle="Para donos e barbeiros: agenda, serviços, equipe, clientes e a página de agendamento da sua barbearia."
-      footer={<SiteLink site="client" to="/" className="font-semibold text-gold-300">Sou cliente: quero agendar um horário</SiteLink>}
+      footer={<Link to="/" className="font-semibold text-gold-300">Sou cliente: quero agendar um horário</Link>}
     >
       {session ? (
         <div className="grid gap-3">
@@ -32,7 +31,7 @@ export function OwnerEntryPage() {
         </div>
       ) : (
         <div className="grid gap-3">
-          <Link to="/entrar" state={{ from: '/' }} className="btn-gold inline-flex min-h-12 items-center justify-center rounded-xs font-semibold">
+          <Link to="/entrar" state={{ from: '/para-barbearias' }} className="btn-gold inline-flex min-h-12 items-center justify-center rounded-xs font-semibold">
             Entrar
           </Link>
           <Link

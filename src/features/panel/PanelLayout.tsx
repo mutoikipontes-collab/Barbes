@@ -6,7 +6,6 @@ import { Alert, FullPageLoading, Wordmark } from '@/components/ui'
 import { useMyShops } from '@/features/auth/queries'
 import { PanelContext } from './context'
 import { BillingBanner } from './BillingBanner'
-import { SiteLink } from '@/lib/site'
 
 const TABS = [
   { to: '', label: 'Início', end: true, ownerOnly: true },
@@ -46,9 +45,9 @@ export function PanelLayout() {
         <header className="sticky top-0 z-10 border-b border-ink-700 bg-ink-950/90 backdrop-blur">
           <div className="mx-auto flex max-w-[68rem] items-center justify-between gap-3 px-4 pt-4">
             <Link to="/conta" aria-label="Minha conta"><Wordmark className="text-[14px]" /></Link>
-            <SiteLink site="client" to={`/${shop.data.slug}`} className="truncate text-sm text-gold-300 underline underline-offset-4">
+            <Link to={`/${shop.data.slug}`} className="truncate text-sm text-gold-300 underline underline-offset-4">
               Ver página pública
-            </SiteLink>
+            </Link>
           </div>
           <div className="mx-auto max-w-[68rem] px-4 pt-3">
             <p className="font-display text-xl">{shop.data.name}</p>

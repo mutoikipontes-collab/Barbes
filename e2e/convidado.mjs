@@ -5,7 +5,7 @@ import { chromium } from 'playwright'
 import fs from 'node:fs'
 
 const CLIENT = 'https://barbes-three.vercel.app'
-const BUSINESS = process.env.BUSINESS_URL || 'https://barbes-painel.vercel.app'
+const BUSINESS = CLIENT
 const stamp = Date.now().toString(36)
 const email = `e2e-${stamp}@example.com`
 const password = 'Teste12345'
@@ -17,7 +17,7 @@ fs.mkdirSync('shots', { recursive: true })
 const browser = await chromium.launch()
 async function newCtx() {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, locale: 'pt-BR', timezoneId: 'America/Sao_Paulo' })
-  if (!process.env.BUSINESS_URL) {
+  if (false) {
     await ctx.route(`https://${new URL(BUSINESS).host}/**`, async (route) => {
       const u = new URL(route.request().url())
       const r = await fetch(`${CLIENT}${u.pathname}${u.search}`)
@@ -48,7 +48,10 @@ try {
   const owner = await newCtx()
   page = owner.page
   await step('dono-cadastro', async () => {
-    await page.goto(`${BUSINESS}/cadastro`)
+    await page.goto(CLIENT)
+    await page.getByRole('button', { name: 'Menu' }).click()
+    await page.getByRole('link', { name: 'Cadastrar minha barbearia' }).click()
+    await page.waitForURL(`${CLIENT}/cadastro`)
     await page.getByLabel('Nome completo').fill('Dono Teste')
     await page.getByLabel('E-mail').fill(email)
     await page.getByLabel('Senha').fill(password)

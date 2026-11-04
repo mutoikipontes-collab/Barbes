@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
@@ -9,7 +10,6 @@ import type { Address } from '@/lib/location'
 import { Alert, Spinner } from '@/components/ui'
 import { RescheduleDialog, type RescheduleTarget } from './RescheduleDialog'
 import { useAuth } from '@/features/auth/AuthProvider'
-import { SiteLink } from '@/lib/site'
 import { loadGuestBookings } from '@/lib/guestBookings'
 
 type MyAppointment = {
@@ -101,7 +101,7 @@ export function MyAppointments({ mode = 'account', refresh = 0 }: { mode?: 'acco
                     {formatDay(dayOf(a.starts_at, a.shop.timezone))} às {formatTime(a.starts_at, a.shop.timezone)}
                   </b>
                   <small className="text-ink-300">
-                    {a.service} com {a.staff} · <SiteLink site="client" to={`/${a.shop.slug}`} className="underline underline-offset-2">{a.shop.name}</SiteLink> · {formatBRL(a.price_cents)}
+                    {a.service} com {a.staff} · <Link to={`/${a.shop.slug}`} className="underline underline-offset-2">{a.shop.name}</Link> · {formatBRL(a.price_cents)}
                   </small>
                   {isUpcoming ? (
                     <button

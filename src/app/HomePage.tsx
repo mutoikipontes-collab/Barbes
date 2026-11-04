@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
 import { formatBRL } from '@/lib/format'
 import { Alert, Spinner, Wordmark } from '@/components/ui'
-import { SiteLink } from '@/lib/site'
 import { ClientMenu } from './ClientMenu'
 
 type PublicShopCard = {
@@ -109,7 +108,7 @@ export function HomePage() {
           <Link to="/termos" className="underline underline-offset-4">Termos de Uso</Link> ·{' '}
           <Link to="/privacidade" className="underline underline-offset-4">Privacidade</Link>
         </span>
-        <SiteLink site="business" to="/" className="text-gold-300 underline underline-offset-4">É dono de barbearia? Site da barbearia</SiteLink>
+        <Link to="/para-barbearias" className="text-gold-300 underline underline-offset-4">É dono de barbearia? Área da barbearia</Link>
       </footer>
     </>
   )
