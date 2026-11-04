@@ -153,7 +153,7 @@ try {
       await page.getByText(/Teste grátis: faltam \d+ dias/).waitFor({ timeout: 15000 })
       await page.getByRole('button', { name: 'Como assinar' }).click()
       await page.getByRole('button', { name: 'Copiar Pix copia e cola' }).waitFor({ timeout: 5000 })
-      await page.getByText('Iolanda dos Santos Pontes').waitFor({ timeout: 5000 })
+      await page.getByText('Titular: Iolanda dos Santos Pontes').waitFor({ timeout: 5000 })
     })
     await step('administracao-carrega-configuracoes', async () => {
       await page.goto(`${BASE}/admin`)
